@@ -1,2842 +1,924 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TemanFinanceku - Security Analyzer</title>
-    <link rel="icon" href="secureview-favicon.svg" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      :root {
-        --bg: #080d1a;
-        --bg2: #0e1628;
-        --bg3: #141e35;
-        --bg4: #1a2540;
-        --border: #1e2d4a;
-        --border2: #243352;
-        --blue: #3b82f6;
-        --blue-dim: rgba(59, 130, 246, 0.12);
-        --blue-glow: rgba(59, 130, 246, 0.25);
-        --green: #10b981;
-        --green-dim: rgba(16, 185, 129, 0.12);
-        --red: #f43f5e;
-        --red-dim: rgba(244, 63, 94, 0.12);
-        --yellow: #f59e0b;
-        --yellow-dim: rgba(245, 158, 11, 0.12);
-        --text: #e2e8f0;
-        --text2: #94a3b8;
-        --text3: #4a5d80;
-        --mono: 'IBM Plex Mono', monospace;
-        --sans: 'Inter', sans-serif;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--sans);
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-
-      /* LAYOUT */
-      .app {
-        display: flex;
-        min-height: 100vh;
-      }
-
-      /* SIDEBAR */
-      .sidebar {
-        width: 220px;
-        background: var(--bg2);
-        border-right: 1px solid var(--border);
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        height: 100vh;
-        z-index: 100;
-        top: 0;
-        left: 0;
-      }
-
-      .logo {
-        padding: 24px 20px 20px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .logo-mark {
-        font-family: var(--mono);
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--blue);
-        letter-spacing: -0.5px;
-      }
-
-      .logo-sub {
-        font-size: 10px;
-        color: var(--text3);
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        margin-top: 2px;
-      }
-
-      .nav {
-        padding: 16px 12px;
-        flex: 1;
-      }
-
-      .nav-label {
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--text3);
-        padding: 0 8px;
-        margin-bottom: 6px;
-        margin-top: 16px;
-      }
-
-      .nav-label:first-child {
-        margin-top: 0;
-      }
-
-      .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text2);
-        transition: all 0.15s;
-        margin-bottom: 2px;
-        border: 1px solid transparent;
-      }
-
-      .nav-item:hover {
-        background: var(--bg3);
-        color: var(--text);
-      }
-
-      .nav-item.active {
-        background: var(--blue-dim);
-        color: var(--blue);
-        border-color: rgba(59, 130, 246, 0.2);
-      }
-
-      .nav-icon {
-        font-size: 15px;
-        width: 20px;
-        text-align: center;
-      }
-
-      .sidebar-footer {
-        padding: 16px 20px;
-        border-top: 1px solid var(--border);
-        font-size: 11px;
-        color: var(--text3);
-        font-family: var(--mono);
-      }
-
-      /* MAIN */
-      .main {
-        margin-left: 220px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      /* TOPBAR */
-      .topbar {
-        background: var(--bg2);
-        border-bottom: 1px solid var(--border);
-        padding: 0 32px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 50;
-      }
-
-      .ticker-input-wrap {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--bg3);
-        border: 1px solid var(--border2);
-        border-radius: 8px;
-        padding: 8px 14px;
-        transition: border-color 0.2s;
-      }
-
-      .ticker-input-wrap:focus-within {
-        border-color: var(--blue);
-      }
-
-      .ticker-input-wrap span {
-        font-family: var(--mono);
-        font-size: 12px;
-        color: var(--text3);
-      }
-
-      .ticker-input {
-        background: none;
-        border: none;
-        outline: none;
-        font-family: var(--mono);
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text);
-        width: 120px;
-        letter-spacing: 1px;
-      }
-
-      .ticker-input::placeholder {
-        color: var(--text3);
-        font-weight: 400;
-      }
-
-      .topbar-right {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .badge {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: var(--mono);
-      }
-
-      .badge-blue {
-        background: var(--blue-dim);
-        color: var(--blue);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-      }
-      .badge-green {
-        background: var(--green-dim);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-      }
-      .badge-red {
-        background: var(--red-dim);
-        color: var(--red);
-        border: 1px solid rgba(244, 63, 94, 0.2);
-      }
-      .badge-yellow {
-        background: var(--yellow-dim);
-        color: var(--yellow);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-      }
-
-      /* CONTENT */
-      .content {
-        padding: 28px 32px;
-        flex: 1;
-      }
-
-      /* SECTION */
-      .section {
-        display: none;
-      }
-      .section.active {
-        display: block;
-      }
-
-      .section-title {
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--text3);
-        margin-bottom: 20px;
-      }
-
-      /* GRID */
-      .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-      }
-      .grid-3 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 16px;
-      }
-      .grid-4 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        gap: 16px;
-      }
-
-      /* CARDS */
-      .card {
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 20px;
-      }
-
-      .card-title {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--text3);
-        margin-bottom: 16px;
-      }
-
-      .card-accent {
-        border-top: 2px solid var(--blue);
-      }
-      .card-accent-green {
-        border-top: 2px solid var(--green);
-      }
-      .card-accent-red {
-        border-top: 2px solid var(--red);
-      }
-      .card-accent-yellow {
-        border-top: 2px solid var(--yellow);
-      }
-
-      /* STAT CARDS */
-      .stat-card {
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px 20px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .stat-label {
-        font-size: 10px;
-        color: var(--text3);
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-      }
-
-      .stat-value {
-        font-family: var(--mono);
-        font-size: 26px;
-        font-weight: 600;
-        color: var(--text);
-        line-height: 1;
-        margin-bottom: 6px;
-      }
-
-      .stat-sub {
-        font-size: 11px;
-        color: var(--text2);
-      }
-
-      .stat-tag {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        font-family: var(--mono);
-        font-size: 10px;
-        font-weight: 600;
-        padding: 3px 7px;
-        border-radius: 4px;
-      }
-
-      /* HEALTH SCORE — SIGNATURE ELEMENT */
-      .health-wrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 8px 0;
-      }
-
-      .gauge-svg {
-        width: 200px;
-        height: 120px;
-      }
-
-      .health-score-num {
-        font-family: var(--mono);
-        font-size: 42px;
-        font-weight: 600;
-        text-align: center;
-        line-height: 1;
-        margin-top: -8px;
-      }
-
-      .health-label {
-        font-size: 11px;
-        color: var(--text2);
-        text-align: center;
-        margin-top: 4px;
-        font-weight: 500;
-      }
-
-      .health-bars {
-        width: 100%;
-        margin-top: 16px;
-      }
-
-      .hbar-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
-
-      .hbar-label {
-        font-size: 11px;
-        color: var(--text2);
-        width: 90px;
-        flex-shrink: 0;
-      }
-
-      .hbar-track {
-        flex: 1;
-        height: 6px;
-        background: var(--bg4);
-        border-radius: 3px;
-        overflow: hidden;
-      }
-
-      .hbar-fill {
-        height: 100%;
-        border-radius: 3px;
-        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      .hbar-val {
-        font-family: var(--mono);
-        font-size: 11px;
-        color: var(--text2);
-        width: 36px;
-        text-align: right;
-      }
-
-      /* INPUT FORM */
-      .input-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      .input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .input-group label {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: var(--text3);
-      }
-
-      .input-group input,
-      .input-group select {
-        background: var(--bg3);
-        border: 1px solid var(--border2);
-        border-radius: 8px;
-        padding: 10px 12px;
-        font-family: var(--mono);
-        font-size: 13px;
-        color: var(--text);
-        outline: none;
-        transition: border-color 0.2s;
-        width: 100%;
-      }
-
-      .input-group input:focus,
-      .input-group select:focus {
-        border-color: var(--blue);
-      }
-      .input-group input::placeholder {
-        color: var(--text3);
-      }
-
-      .input-group select option {
-        background: var(--bg3);
-      }
-
-      .input-section-label {
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 2.5px;
-        text-transform: uppercase;
-        color: var(--blue);
-        padding: 12px 0 6px;
-        grid-column: 1 / -1;
-        border-top: 1px solid var(--border);
-        margin-top: 4px;
-      }
-
-      .input-section-label:first-child {
-        border-top: none;
-        padding-top: 0;
-      }
-
-      .btn {
-        padding: 11px 20px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        transition: all 0.15s;
-        font-family: var(--sans);
-        letter-spacing: 0.3px;
-      }
-
-      .btn-primary {
-        background: var(--blue);
-        color: white;
-      }
-      .btn-primary:hover {
-        background: #2563eb;
-        transform: translateY(-1px);
-      }
-      .btn-ghost {
-        background: var(--bg3);
-        color: var(--text2);
-        border: 1px solid var(--border2);
-      }
-      .btn-ghost:hover {
-        background: var(--bg4);
-        color: var(--text);
-      }
-
-      /* TABLE */
-      .table-wrap {
-        overflow-x: auto;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-      }
-
-      thead th {
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--text3);
-        padding: 10px 14px;
-        text-align: left;
-        border-bottom: 1px solid var(--border);
-      }
-
-      tbody td {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--border);
-        font-family: var(--mono);
-        font-size: 13px;
-        color: var(--text2);
-      }
-
-      tbody tr:last-child td {
-        border-bottom: none;
-      }
-
-      tbody tr:hover td {
-        background: var(--bg3);
-        color: var(--text);
-      }
-
-      td.label-col {
-        font-family: var(--sans);
-        color: var(--text);
-        font-size: 13px;
-        font-weight: 500;
-      }
-
-      td.green {
-        color: var(--green);
-      }
-      td.red {
-        color: var(--red);
-      }
-      td.yellow {
-        color: var(--yellow);
-      }
-      td.blue {
-        color: var(--blue);
-      }
-
-      /* RATIO METER */
-      .ratio-meter {
-        margin-bottom: 14px;
-      }
-
-      .ratio-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-      }
-
-      .ratio-name {
-        font-size: 12px;
-        color: var(--text);
-        font-weight: 500;
-      }
-      .ratio-value {
-        font-family: var(--mono);
-        font-size: 13px;
-        font-weight: 600;
-      }
-
-      .ratio-track {
-        height: 8px;
-        background: var(--bg4);
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .ratio-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
-        position: relative;
-      }
-
-      .ratio-zones {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 4px;
-      }
-
-      .ratio-zone-label {
-        font-size: 9px;
-        color: var(--text3);
-      }
-
-      /* DCF */
-      .dcf-result {
-        text-align: center;
-        padding: 24px;
-        background: var(--bg3);
-        border-radius: 12px;
-        border: 1px solid var(--border2);
-        margin-top: 16px;
-      }
-
-      .dcf-label {
-        font-size: 11px;
-        color: var(--text3);
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-      }
-      .dcf-value {
-        font-family: var(--mono);
-        font-size: 36px;
-        font-weight: 600;
-      }
-      .dcf-updown {
-        font-size: 13px;
-        margin-top: 6px;
-        font-weight: 500;
-      }
-
-      /* VERDICT */
-      .verdict-panel {
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 16px;
-      }
-
-      .verdict-green {
-        background: var(--green-dim);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-      }
-      .verdict-red {
-        background: var(--red-dim);
-        border: 1px solid rgba(244, 63, 94, 0.25);
-      }
-      .verdict-yellow {
-        background: var(--yellow-dim);
-        border: 1px solid rgba(245, 158, 11, 0.25);
-      }
-
-      .verdict-title {
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-      .verdict-green .verdict-title {
-        color: var(--green);
-      }
-      .verdict-red .verdict-title {
-        color: var(--red);
-      }
-      .verdict-yellow .verdict-title {
-        color: var(--yellow);
-      }
-      .verdict-body {
-        font-size: 13px;
-        color: var(--text2);
-        line-height: 1.6;
-      }
-
-      /* CHECKLIST */
-      .checklist-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .checklist-item:last-child {
-        border-bottom: none;
-      }
-
-      .check-dot {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-
-      .check-dot.pass {
-        background: var(--green-dim);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-      .check-dot.fail {
-        background: var(--red-dim);
-        color: var(--red);
-        border: 1px solid rgba(244, 63, 94, 0.3);
-      }
-      .check-dot.warn {
-        background: var(--yellow-dim);
-        color: var(--yellow);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-      }
-      .check-dot.neutral {
-        background: var(--bg4);
-        color: var(--text3);
-        border: 1px solid var(--border2);
-      }
-
-      .check-text {
-        flex: 1;
-      }
-      .check-title {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text);
-        margin-bottom: 2px;
-      }
-      .check-detail {
-        font-size: 11px;
-        color: var(--text2);
-      }
-
-      /* DIVIDER */
-      .divider {
-        height: 1px;
-        background: var(--border);
-        margin: 20px 0;
-      }
-
-      .spacer {
-        margin-bottom: 16px;
-      }
-
-      /* SCROLLBAR */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: var(--bg);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--border2);
-        border-radius: 3px;
-      }
-
-      /* EMPTY STATE */
-      .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text3);
-      }
-
-      .empty-state .icon {
-        font-size: 36px;
-        margin-bottom: 12px;
-      }
-      .empty-state p {
-        font-size: 13px;
-        line-height: 1.6;
-      }
-
-      /* TABS */
-      .tabs {
-        display: flex;
-        gap: 4px;
-        background: var(--bg3);
-        border-radius: 10px;
-        padding: 4px;
-        margin-bottom: 20px;
-        border: 1px solid var(--border);
-      }
-
-      .tab {
-        flex: 1;
-        padding: 8px 12px;
-        border-radius: 7px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        color: var(--text3);
-        transition: all 0.15s;
-        border: none;
-        background: none;
-        font-family: var(--sans);
-      }
-
-      .tab.active {
-        background: var(--bg);
-        color: var(--blue);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-      }
-
-      .tab-content {
-        display: none;
-      }
-      .tab-content.active {
-        display: block;
-      }
-
-      /* TOOLTIP */
-      .tooltip {
-        font-size: 10px;
-        color: var(--text3);
-        margin-top: 4px;
-        font-style: italic;
-      }
-
-      /* PULSE DOT */
-      .pulse-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--green);
-        position: relative;
-        display: inline-block;
-        margin-right: 6px;
-      }
-
-      .pulse-dot::after {
-        content: '';
-        position: absolute;
-        inset: -3px;
-        border-radius: 50%;
-        background: rgba(16, 185, 129, 0.3);
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.5);
-          opacity: 0;
-        }
-      }
-
-      @keyframes slideIn {
-        from {
-          transform: translateY(16px);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      /* SECTION NAV BAR */
-      .section-nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 22px;
-        gap: 12px;
-      }
-
-      .section-nav-center {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        justify-content: center;
-      }
-
-      .snav-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1px solid var(--border2);
-        background: var(--bg3);
-        color: var(--text2);
-        transition: all 0.15s;
-        font-family: var(--sans);
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
-
-      .snav-btn:hover:not(:disabled) {
-        background: var(--bg4);
-        color: var(--text);
-        border-color: var(--blue);
-      }
-
-      .snav-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-
-      .snav-btn.edit-btn {
-        background: var(--blue-dim);
-        color: var(--blue);
-        border-color: rgba(59, 130, 246, 0.3);
-      }
-
-      .snav-btn.edit-btn:hover {
-        background: rgba(59, 130, 246, 0.2);
-        border-color: var(--blue);
-      }
-
-      .snav-dots {
-        display: flex;
-        gap: 5px;
-        align-items: center;
-      }
-
-      .snav-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--border2);
-        transition: all 0.2s;
-        cursor: pointer;
-      }
-
-      .snav-dot.active {
-        background: var(--blue);
-        width: 18px;
-        border-radius: 3px;
-      }
-
-      .snav-label {
-        font-size: 11px;
-        color: var(--text3);
-        font-family: var(--mono);
-        letter-spacing: 0.5px;
-      }
-
-      /* RESPONSIVE */
-      @media (max-width: 900px) {
-        .sidebar {
-          width: 60px;
-        }
-        .logo-mark,
-        .logo-sub,
-        .nav-label,
-        .nav-item span {
-          display: none;
-        }
-        .nav-item {
-          justify-content: center;
-          padding: 12px;
-        }
-        .main {
-          margin-left: 60px;
-        }
-        .grid-3,
-        .grid-4 {
-          grid-template-columns: 1fr 1fr;
-        }
-        .content {
-          padding: 20px 16px;
-        }
-        .topbar {
-          padding: 0 16px;
-        }
-      }
-
-      @media (max-width: 600px) {
-        .grid-2,
-        .grid-3,
-        .grid-4 {
-          grid-template-columns: 1fr;
-        }
-        .input-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app">
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <div class="logo">
-          <div class="logo-mark">SecureView</div>
-          <div class="logo-sub">Security Analyzer</div>
-        </div>
-        <nav class="nav">
-          <div class="nav-label">Analysis</div>
-          <div class="nav-item active" onclick="showSection('overview')">
-            <span class="nav-icon">◈</span><span>Overview</span>
-          </div>
-          <div class="nav-item" onclick="showSection('valuation')">
-            <span class="nav-icon">⬡</span><span>Valuation</span>
-          </div>
-          <div class="nav-item" onclick="showSection('fundamentals')">
-            <span class="nav-icon">⊞</span><span>Fundamentals</span>
-          </div>
-          <div class="nav-item" onclick="showSection('dividend')">
-            <span class="nav-icon">◎</span><span>Dividend</span>
-          </div>
-          <div class="nav-item" onclick="showSection('dcf')">
-            <span class="nav-icon">∿</span><span>DCF Model</span>
-          </div>
-          <div class="nav-label">Tools</div>
-          <div class="nav-item" onclick="showSection('input')">
-            <span class="nav-icon">⊕</span><span>Input Data</span>
-          </div>
-          <div class="nav-item" onclick="showSection('verdict')">
-            <span class="nav-icon">◉</span><span>Final Verdict</span>
-          </div>
-        </nav>
-        <div class="sidebar-footer">v1.0 · IDX</div>
-      </aside>
-
-      <!-- MAIN -->
-      <main class="main">
-        <!-- TOPBAR -->
-        <div class="topbar">
-          <div style="display: flex; align-items: center; gap: 16px">
-            <div class="ticker-input-wrap">
-              <span>IDX:</span>
-              <input
-                class="ticker-input"
-                id="tickerDisplay"
-                placeholder="TICKER"
-                maxlength="10"
-              />
-            </div>
-            <span
-              id="topbar-verdict-badge"
-              class="badge badge-blue"
-              style="display: none"
-            ></span>
-          </div>
-          <div class="topbar-right">
-            <span
-              style="
-                font-size: 12px;
-                color: var(--text3);
-                font-family: var(--mono);
-              "
-              id="last-updated"
-            ></span>
-            <button
-              class="btn btn-primary"
-              onclick="showSection('input')"
-              style="padding: 8px 16px; font-size: 12px"
-            >
-              + Input Data
-            </button>
-          </div>
-        </div>
-
-        <!-- CONTENT -->
-        <div class="content">
-          <!-- SECTION NAV BAR -->
-          <div class="section-nav" id="section-nav-bar">
-            <button
-              class="snav-btn"
-              id="snav-prev"
-              onclick="navStep(-1)"
-              disabled
-            >
-              ← Prev
-            </button>
-            <div class="section-nav-center">
-              <div class="snav-dots" id="snav-dots"></div>
-              <span class="snav-label" id="snav-label"></span>
-            </div>
-            <button
-              class="snav-btn edit-btn"
-              onclick="goEditData()"
-              id="snav-edit"
-              style="display: none"
-            >
-              ✎ Edit Data
-            </button>
-            <button class="snav-btn" id="snav-next" onclick="navStep(1)">
-              Next →
-            </button>
-          </div>
-
-          <!-- OVERVIEW -->
-          <div class="section active" id="section-overview">
-            <div class="section-title">Overview</div>
-
-            <div id="overview-empty" class="empty-state">
-              <div class="icon">◈</div>
-              <p>
-                No security loaded yet.<br />Click
-                <strong>Input Data</strong> to enter your stock's financials.
-              </p>
-            </div>
-
-            <div id="overview-content" style="display: none">
-              <div class="grid-4 spacer" id="overview-stats"></div>
-
-              <div class="grid-2">
-                <!-- Health Score -->
-                <div class="card card-accent">
-                  <div class="card-title">Financial Health Score</div>
-                  <div class="health-wrap">
-                    <svg class="gauge-svg" viewBox="0 0 200 120">
-                      <defs>
-                        <linearGradient
-                          id="gaugeGrad"
-                          x1="0%"
-                          y1="0%"
-                          x2="100%"
-                          y2="0%"
-                        >
-                          <stop offset="0%" style="stop-color: #f43f5e" />
-                          <stop offset="50%" style="stop-color: #f59e0b" />
-                          <stop offset="100%" style="stop-color: #10b981" />
-                        </linearGradient>
-                      </defs>
-                      <!-- Track -->
-                      <path
-                        d="M20,100 A80,80 0 0,1 180,100"
-                        fill="none"
-                        stroke="#1A2540"
-                        stroke-width="14"
-                        stroke-linecap="round"
-                      />
-                      <!-- Fill -->
-                      <path
-                        d="M20,100 A80,80 0 0,1 180,100"
-                        fill="none"
-                        stroke="url(#gaugeGrad)"
-                        stroke-width="14"
-                        stroke-linecap="round"
-                        stroke-dasharray="251.2"
-                        id="gauge-fill"
-                        stroke-dashoffset="251.2"
-                        style="
-                          transition: stroke-dashoffset 1.2s
-                            cubic-bezier(0.34, 1.56, 0.64, 1);
-                        "
-                      />
-                      <!-- Needle -->
-                      <line
-                        id="gauge-needle"
-                        x1="100"
-                        y1="100"
-                        x2="100"
-                        y2="30"
-                        stroke="white"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        style="
-                          transform-origin: 100px 100px;
-                          transform: rotate(-90deg);
-                          transition: transform 1.2s
-                            cubic-bezier(0.34, 1.56, 0.64, 1);
-                        "
-                      />
-                      <circle
-                        cx="100"
-                        cy="100"
-                        r="5"
-                        fill="white"
-                        opacity="0.8"
-                      />
-                      <!-- Labels -->
-                      <text
-                        x="16"
-                        y="118"
-                        font-size="9"
-                        fill="#4A5D80"
-                        font-family="IBM Plex Mono"
-                      >
-                        0
-                      </text>
-                      <text
-                        x="89"
-                        y="20"
-                        font-size="9"
-                        fill="#4A5D80"
-                        font-family="IBM Plex Mono"
-                      >
-                        50
-                      </text>
-                      <text
-                        x="180"
-                        y="118"
-                        font-size="9"
-                        fill="#4A5D80"
-                        font-family="IBM Plex Mono"
-                      >
-                        100
-                      </text>
-                    </svg>
-                    <div class="health-score-num" id="health-score-num">—</div>
-                    <div class="health-label" id="health-score-label">
-                      Enter data to calculate
-                    </div>
-                  </div>
-                  <div class="health-bars" id="health-bars"></div>
-                </div>
-
-                <!-- Quick Ratios -->
-                <div class="card card-accent-green">
-                  <div class="card-title">Key Ratios</div>
-                  <div id="key-ratios"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- VALUATION -->
-          <div class="section" id="section-valuation">
-            <div class="section-title">Valuation Analysis</div>
-            <div id="valuation-empty" class="empty-state">
-              <div class="icon">⬡</div>
-              <p>No data yet. Input your stock's financials first.</p>
-            </div>
-            <div id="valuation-content" style="display: none">
-              <div class="grid-3 spacer" id="val-targets"></div>
-              <div class="grid-2">
-                <div class="card card-accent">
-                  <div class="card-title">Valuation Meters</div>
-                  <div id="val-meters"></div>
-                </div>
-                <div class="card">
-                  <div class="card-title">Fair Value Summary</div>
-                  <div class="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Method</th>
-                          <th>Fair Value</th>
-                          <th>Upside</th>
-                          <th>Signal</th>
-                        </tr>
-                      </thead>
-                      <tbody id="val-table"></tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FUNDAMENTALS -->
-          <div class="section" id="section-fundamentals">
-            <div class="section-title">Fundamental Analysis</div>
-            <div id="fund-empty" class="empty-state">
-              <div class="icon">⊞</div>
-              <p>No data yet. Input your stock's financials first.</p>
-            </div>
-            <div id="fund-content" style="display: none">
-              <div class="tabs">
-                <button class="tab active" onclick="showTab('profitability')">
-                  Profitability
-                </button>
-                <button class="tab" onclick="showTab('liquidity')">
-                  Liquidity & Debt
-                </button>
-                <button class="tab" onclick="showTab('efficiency')">
-                  Efficiency
-                </button>
-              </div>
-              <div class="tab-content active" id="tab-profitability">
-                <div class="card">
-                  <div class="card-title">Profitability Metrics</div>
-                  <div class="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Value</th>
-                          <th>Benchmark</th>
-                          <th>Signal</th>
-                        </tr>
-                      </thead>
-                      <tbody id="profit-table"></tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div class="tab-content" id="tab-liquidity">
-                <div class="card">
-                  <div class="card-title">Liquidity & Debt Metrics</div>
-                  <div class="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Value</th>
-                          <th>Benchmark</th>
-                          <th>Signal</th>
-                        </tr>
-                      </thead>
-                      <tbody id="debt-table"></tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              <div class="tab-content" id="tab-efficiency">
-                <div class="card">
-                  <div class="card-title">Efficiency Metrics</div>
-                  <div class="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Metric</th>
-                          <th>Value</th>
-                          <th>Benchmark</th>
-                          <th>Signal</th>
-                        </tr>
-                      </thead>
-                      <tbody id="eff-table"></tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DIVIDEND -->
-          <div class="section" id="section-dividend">
-            <div class="section-title">Dividend Analysis</div>
-            <div id="div-empty" class="empty-state">
-              <div class="icon">◎</div>
-              <p>No data yet. Input your stock's financials first.</p>
-            </div>
-            <div id="div-content" style="display: none">
-              <div class="grid-4 spacer" id="div-stats"></div>
-              <div class="grid-2">
-                <div class="card card-accent-green">
-                  <div class="card-title">Dividend Income Calculator</div>
-                  <div class="input-group" style="margin-bottom: 12px">
-                    <label>Number of Shares</label>
-                    <input
-                      type="number"
-                      id="div-shares"
-                      placeholder="e.g. 10000"
-                      oninput="calcDividend()"
-                      style="
-                        background: var(--bg3);
-                        border: 1px solid var(--border2);
-                        border-radius: 8px;
-                        padding: 10px 12px;
-                        font-family: var(--mono);
-                        font-size: 13px;
-                        color: var(--text);
-                        outline: none;
-                        width: 100%;
-                      "
-                    />
-                  </div>
-                  <div id="div-calc-result"></div>
-                </div>
-                <div class="card">
-                  <div class="card-title">Dividend Sustainability Check</div>
-                  <div id="div-checklist"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DCF -->
-          <div class="section" id="section-dcf">
-            <div class="section-title">DCF — Discounted Cash Flow</div>
-            <div id="dcf-empty" class="empty-state">
-              <div class="icon">∿</div>
-              <p>No data yet. Input your stock's financials first.</p>
-            </div>
-            <div id="dcf-content" style="display: none">
-              <div class="grid-2">
-                <div class="card card-accent">
-                  <div class="card-title">DCF Assumptions</div>
-                  <div class="input-grid">
-                    <div class="input-group">
-                      <label>EPS Growth Rate (%) yr 1-5</label>
-                      <input
-                        type="number"
-                        id="dcf-g1"
-                        value="8"
-                        oninput="calcDCF()"
-                      />
-                    </div>
-                    <div class="input-group">
-                      <label>EPS Growth Rate (%) yr 6-10</label>
-                      <input
-                        type="number"
-                        id="dcf-g2"
-                        value="4"
-                        oninput="calcDCF()"
-                      />
-                    </div>
-                    <div class="input-group">
-                      <label>Terminal Growth Rate (%)</label>
-                      <input
-                        type="number"
-                        id="dcf-tg"
-                        value="3"
-                        oninput="calcDCF()"
-                      />
-                    </div>
-                    <div class="input-group">
-                      <label>Discount Rate / WACC (%)</label>
-                      <input
-                        type="number"
-                        id="dcf-wacc"
-                        value="10"
-                        oninput="calcDCF()"
-                      />
-                    </div>
-                  </div>
-                  <div class="dcf-result" id="dcf-result"></div>
-                </div>
-                <div class="card">
-                  <div class="card-title">10-Year EPS Projection</div>
-                  <div id="dcf-table-wrap"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- INPUT DATA -->
-          <div class="section" id="section-input">
-            <div class="section-title">Input Security Data</div>
-            <div class="card" style="max-width: 720px">
-              <div class="card-title">Stock Financials</div>
-              <div class="input-grid">
-                <div class="input-section-label">Basic Info</div>
-                <div class="input-group">
-                  <label>Ticker Symbol</label>
-                  <input
-                    type="text"
-                    id="inp-ticker"
-                    placeholder="e.g. TLKM"
-                    style="text-transform: uppercase"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Stock Price (Rp)</label>
-                  <input type="number" id="inp-price" placeholder="e.g. 3400" />
-                </div>
-
-                <div class="input-section-label">Income Statement</div>
-                <div class="input-group">
-                  <label>EPS — Earnings Per Share (Rp)</label>
-                  <input type="number" id="inp-eps" placeholder="e.g. 200" />
-                </div>
-                <div class="input-group">
-                  <label>Revenue TTM (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-revenue"
-                    placeholder="e.g. 140000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Net Profit (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-netprofit"
-                    placeholder="e.g. 24000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>EBITDA (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-ebitda"
-                    placeholder="e.g. 70000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>EPS Growth YoY (%)</label>
-                  <input
-                    type="number"
-                    id="inp-eps-growth"
-                    placeholder="e.g. 12 or -5"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Revenue Growth YoY (%)</label>
-                  <input
-                    type="number"
-                    id="inp-rev-growth"
-                    placeholder="e.g. 8"
-                  />
-                </div>
-
-                <div class="input-section-label">Balance Sheet</div>
-                <div class="input-group">
-                  <label>Book Value Per Share (Rp)</label>
-                  <input type="number" id="inp-bv" placeholder="e.g. 1500" />
-                </div>
-                <div class="input-group">
-                  <label>Total Assets (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-assets"
-                    placeholder="e.g. 290000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Total Liabilities (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-liabilities"
-                    placeholder="e.g. 134000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Total Equity (Rp Billion)</label>
-                  <input
-                    type="number"
-                    id="inp-equity"
-                    placeholder="e.g. 155000"
-                  />
-                </div>
-                <div class="input-group">
-                  <label>Short-term Debt (Rp Billion)</label>
-                  <input type="number" id="inp-std" placeholder="e.g. 20000" />
-                </div>
-                <div class="input-group">
-                  <label>Long-term Debt (Rp Billion)</label>
-                  <input type="number" id="inp-ltd" placeholder="e.g. 24000" />
-                </div>
-                <div class="input-group">
-                  <label>Cash (Rp Billion)</label>
-                  <input type="number" id="inp-cash" placeholder="e.g. 37000" />
-                </div>
-                <div class="input-group">
-                  <label>Shares Outstanding (Billion)</label>
-                  <input type="number" id="inp-shares" placeholder="e.g. 99" />
-                </div>
-
-                <div class="input-section-label">Dividend</div>
-                <div class="input-group">
-                  <label>Dividend Per Share (Rp)</label>
-                  <input type="number" id="inp-dps" placeholder="e.g. 180" />
-                </div>
-                <div class="input-group">
-                  <label>Industry Avg P/E</label>
-                  <input type="number" id="inp-ind-pe" placeholder="e.g. 15" />
-                </div>
-
-                <div class="input-section-label">Returns</div>
-                <div class="input-group">
-                  <label>ROE — Return on Equity (%)</label>
-                  <input type="number" id="inp-roe" placeholder="e.g. 18" />
-                </div>
-                <div class="input-group">
-                  <label>ROA — Return on Assets (%)</label>
-                  <input type="number" id="inp-roa" placeholder="e.g. 8" />
-                </div>
-              </div>
-
-              <div class="divider"></div>
-              <div
-                style="
-                  background: var(--yellow-dim);
-                  border: 1px solid rgba(245, 158, 11, 0.25);
-                  border-radius: 8px;
-                  padding: 10px 14px;
-                  margin-bottom: 14px;
-                  font-size: 12px;
-                  color: var(--yellow);
-                  line-height: 1.5;
-                "
-              >
-                ⚠️ <strong>Sample data notice:</strong> Fundamentals from FY2025
-                reports. Stock prices updated July 2026 — always verify the live
-                price on your broker or Stockbit before investing.
-              </div>
-              <div
-                style="
-                  display: flex;
-                  gap: 8px;
-                  flex-wrap: wrap;
-                  align-items: center;
-                  margin-bottom: 12px;
-                "
-              >
-                <span
-                  style="
-                    font-size: 11px;
-                    color: var(--text3);
-                    font-weight: 600;
-                    letter-spacing: 1px;
-                  "
-                  >LOAD SAMPLE:</span
-                >
-                <button
-                  class="btn btn-ghost"
-                  onclick="loadSample('TLKM')"
-                  style="padding: 7px 12px; font-size: 12px"
-                >
-                  TLKM ~Rp2,500
-                </button>
-                <button
-                  class="btn btn-ghost"
-                  onclick="loadSample('UNTR')"
-                  style="padding: 7px 12px; font-size: 12px"
-                >
-                  UNTR ~Rp26,900
-                </button>
-                <button
-                  class="btn btn-ghost"
-                  onclick="loadSample('BBCA')"
-                  style="padding: 7px 12px; font-size: 12px"
-                >
-                  BBCA ~Rp6,050
-                </button>
-                <button
-                  class="btn btn-ghost"
-                  onclick="loadSample('BMRI')"
-                  style="padding: 7px 12px; font-size: 12px"
-                >
-                  BMRI ~Rp4,050
-                </button>
-              </div>
-              <div
-                style="
-                  display: flex;
-                  gap: 12px;
-                  flex-wrap: wrap;
-                  align-items: center;
-                "
-              >
-                <button class="btn btn-primary" onclick="analyzeAndReturn()">
-                  Analyze Security →
-                </button>
-                <button
-                  class="btn btn-ghost"
-                  id="back-btn"
-                  onclick="showSection(lastAnalysisSection)"
-                  style="display: none"
-                >
-                  ← Back to Analysis
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- VERDICT -->
-          <div class="section" id="section-verdict">
-            <div class="section-title">Final Verdict</div>
-            <div id="verdict-empty" class="empty-state">
-              <div class="icon">◉</div>
-              <p>No analysis yet. Input your stock's financials first.</p>
-            </div>
-            <div id="verdict-content" style="display: none">
-              <div id="verdict-panel"></div>
-              <div class="card" style="margin-top: 16px">
-                <div class="card-title">Analysis Checklist</div>
-                <div id="verdict-checklist"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <script>
-      // ─── STATE ───────────────────────────────────────────────────────────────────
-      let S = {}; // stock data
-      let analyzed = false;
-
-      // ─── SAMPLES ─────────────────────────────────────────────────────────────────
-      // ⚠️ Sample data: fundamentals are from latest financial reports (FY2025).
-      // Prices updated July 2026 — but always verify live price before investing!
-      const SAMPLES = {
-        TLKM: {
-          ticker: 'TLKM',
-          price: 2500,
-          eps: 179.83,
-          revenue: 147292,
-          netprofit: 17800,
-          ebitda: 73480,
-          epsGrowth: -21.72,
-          revGrowth: 12.1,
-          bv: 1357.65,
-          assets: 289955,
-          liabilities: 134145,
-          equity: 155810,
-          std: 20919,
-          ltd: 24540,
-          cash: 37549,
-          shares: 99.06,
-          dps: 120,
-          indPe: 15,
-          roe: 11.4,
-          roa: 6.2,
-        },
-        UNTR: {
-          ticker: 'UNTR',
-          price: 26900,
-          eps: 764.65,
-          revenue: 125590,
-          netprofit: 12270,
-          ebitda: 18000,
-          epsGrowth: 15,
-          revGrowth: 10,
-          bv: 12238,
-          assets: 98000,
-          liabilities: 38000,
-          equity: 60000,
-          std: 5000,
-          ltd: 8000,
-          cash: 15000,
-          shares: 3.57,
-          dps: 1663,
-          indPe: 10,
-          roe: 12.31,
-          roa: 8.5,
-        },
-        BBCA: {
-          ticker: 'BBCA',
-          price: 6050,
-          eps: 320,
-          revenue: 85000,
-          netprofit: 48000,
-          ebitda: 52000,
-          epsGrowth: 10,
-          revGrowth: 8,
-          bv: 2100,
-          assets: 1350000,
-          liabilities: 1200000,
-          equity: 150000,
-          std: 80000,
-          ltd: 120000,
-          cash: 200000,
-          shares: 122.11,
-          dps: 336,
-          indPe: 18,
-          roe: 18.5,
-          roa: 3.8,
-        },
-        BMRI: {
-          ticker: 'BMRI',
-          price: 4050,
-          eps: 620,
-          revenue: 180000,
-          netprofit: 55000,
-          ebitda: 70000,
-          epsGrowth: 17,
-          revGrowth: 8.6,
-          bv: 3200,
-          assets: 2100000,
-          liabilities: 1900000,
-          equity: 200000,
-          std: 100000,
-          ltd: 200000,
-          cash: 250000,
-          shares: 92.27,
-          dps: 466,
-          indPe: 8,
-          roe: 13.6,
-          roa: 2.6,
-        },
-      };
-
-      function loadSample(ticker) {
-        const d = SAMPLES[ticker];
-        if (!d) return;
-        document.getElementById('inp-ticker').value = d.ticker;
-        document.getElementById('inp-price').value = d.price;
-        document.getElementById('inp-eps').value = d.eps;
-        document.getElementById('inp-revenue').value = d.revenue;
-        document.getElementById('inp-netprofit').value = d.netprofit;
-        document.getElementById('inp-ebitda').value = d.ebitda;
-        document.getElementById('inp-eps-growth').value = d.epsGrowth;
-        document.getElementById('inp-rev-growth').value = d.revGrowth;
-        document.getElementById('inp-bv').value = d.bv;
-        document.getElementById('inp-assets').value = d.assets;
-        document.getElementById('inp-liabilities').value = d.liabilities;
-        document.getElementById('inp-equity').value = d.equity;
-        document.getElementById('inp-std').value = d.std;
-        document.getElementById('inp-ltd').value = d.ltd;
-        document.getElementById('inp-cash').value = d.cash;
-        document.getElementById('inp-shares').value = d.shares;
-        document.getElementById('inp-dps').value = d.dps;
-        document.getElementById('inp-ind-pe').value = d.indPe;
-        document.getElementById('inp-roe').value = d.roe;
-        document.getElementById('inp-roa').value = d.roa;
-        showToast(
-          `${ticker} loaded — price updated July 2026. Always verify live price before investing!`,
-          'warn'
-        );
-      }
-
-      function showToast(msg, type = 'info') {
-        const existing = document.getElementById('toast');
-        if (existing) existing.remove();
-        const colors = {
-          info: 'var(--blue)',
-          warn: 'var(--yellow)',
-          success: 'var(--green)',
-          error: 'var(--red)',
-        };
-        const t = document.createElement('div');
-        t.id = 'toast';
-        t.style.cssText = `position:fixed; bottom:24px; right:24px; z-index:9999;
-    background:var(--bg2); border:1px solid ${colors[type]}; border-left:3px solid ${colors[type]};
-    color:var(--text); padding:12px 18px; border-radius:10px; font-size:12px; max-width:320px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.4); animation:slideIn 0.3s ease; font-family:var(--sans); line-height:1.5;`;
-        t.innerHTML = `<span style="color:${colors[type]}; font-weight:600; margin-right:6px;">${type === 'warn' ? '⚠️' : 'ℹ️'}</span>${msg}`;
-        document.body.appendChild(t);
-        setTimeout(() => {
-          t.style.opacity = '0';
-          t.style.transition = 'opacity 0.4s';
-          setTimeout(() => t.remove(), 400);
-        }, 4000);
-      }
-
-      // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-      const SECTIONS = [
-        'overview',
-        'valuation',
-        'fundamentals',
-        'dividend',
-        'dcf',
-        'input',
-        'verdict',
-      ];
-      const SECTION_LABELS = [
-        'Overview',
-        'Valuation',
-        'Fundamentals',
-        'Dividend',
-        'DCF Model',
-        'Input Data',
-        'Final Verdict',
-      ];
-      const ANALYSIS_SECTIONS = [
-        'overview',
-        'valuation',
-        'fundamentals',
-        'dividend',
-        'dcf',
-        'verdict',
-      ]; // excludes input
-
-      let currentSection = 'overview';
-      let lastAnalysisSection = 'overview'; // remember where user was before editing
-
-      function showSection(name, fromNav) {
-        document
-          .querySelectorAll('.section')
-          .forEach((s) => s.classList.remove('active'));
-        document
-          .querySelectorAll('.nav-item')
-          .forEach((n) => n.classList.remove('active'));
-        document.getElementById('section-' + name).classList.add('active');
-
-        // Highlight correct nav item
-        const navItems = document.querySelectorAll('.nav-item');
-        const idx = SECTIONS.indexOf(name);
-        if (navItems[idx]) navItems[idx].classList.add('active');
-
-        currentSection = name;
-
-        // Track last analysis section (non-input)
-        if (name !== 'input') lastAnalysisSection = name;
-
-        updateNavBar();
-      }
-
-      function updateNavBar() {
-        const isInput = currentSection === 'input';
-        const idx = SECTIONS.indexOf(currentSection);
-
-        // Dots — only show for analysis sections
-        const dotsEl = document.getElementById('snav-dots');
-        const labelEl = document.getElementById('snav-label');
-        dotsEl.innerHTML = SECTIONS.map(
-          (s, i) => `
-    <div class="snav-dot ${s === currentSection ? 'active' : ''}"
-         title="${SECTION_LABELS[i]}"
-         onclick="showSection('${s}')"></div>
-  `
-        ).join('');
-        labelEl.textContent = SECTION_LABELS[idx] || '';
-
-        // Prev / Next
-        const prevBtn = document.getElementById('snav-prev');
-        const nextBtn = document.getElementById('snav-next');
-        prevBtn.disabled = idx === 0;
-        nextBtn.disabled = idx === SECTIONS.length - 1;
-
-        // Section nav: show Edit Data only on analysis pages (not on input page itself)
-        const editBtn = document.getElementById('snav-edit');
-        editBtn.style.display = analyzed && !isInput ? 'flex' : 'none';
-
-        // Show Back button inside input form only when already analyzed
-        const backBtn = document.getElementById('back-btn');
-        if (backBtn)
-          backBtn.style.display = analyzed && isInput ? 'inline-flex' : 'none';
-
-        // Prev label — show name of previous section
-        if (idx > 0) prevBtn.innerHTML = `← ${SECTION_LABELS[idx - 1]}`;
-        else prevBtn.innerHTML = '←';
-
-        if (idx < SECTIONS.length - 1)
-          nextBtn.innerHTML = `${SECTION_LABELS[idx + 1]} →`;
-        else nextBtn.innerHTML = '→';
-      }
-
-      function navStep(dir) {
-        const idx = SECTIONS.indexOf(currentSection);
-        const next = SECTIONS[idx + dir];
-        if (next) showSection(next);
-      }
-
-      function goEditData() {
-        // Remember where we came from so after re-analyze we return there
-        showSection('input');
-      }
-
-      // On re-analyze, go back to last analysis section (or overview on first run)
-      function analyzeAndReturn() {
-        const wasAnalyzed = analyzed;
-        const returnTo = wasAnalyzed ? lastAnalysisSection : 'overview';
-        analyzeStock();
-        showSection(returnTo);
-        updateNavBar();
-      }
-
-      // Init nav bar on load
-      window.addEventListener('DOMContentLoaded', () => updateNavBar());
-
-      function showTab(name) {
-        document
-          .querySelectorAll('.tab')
-          .forEach((t) => t.classList.remove('active'));
-        document
-          .querySelectorAll('.tab-content')
-          .forEach((t) => t.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
-        event.currentTarget.classList.add('active');
-      }
-
-      // ─── FORMAT ──────────────────────────────────────────────────────────────────
-      function fmt(n, dec = 2) {
-        if (n === null || n === undefined || isNaN(n)) return '—';
-        return Number(n).toLocaleString('id-ID', {
-          minimumFractionDigits: dec,
-          maximumFractionDigits: dec,
-        });
-      }
-
-      function fmtRp(n) {
-        if (!n || isNaN(n)) return '—';
-        if (n >= 1e12) return 'Rp ' + fmt(n / 1e12, 2) + ' T';
-        if (n >= 1e9) return 'Rp ' + fmt(n / 1e9, 2) + ' B';
-        if (n >= 1e6) return 'Rp ' + fmt(n / 1e6, 1) + ' M';
-        return 'Rp ' + fmt(n, 0);
-      }
-
-      function pct(n) {
-        return (n >= 0 ? '+' : '') + fmt(n, 2) + '%';
-      }
-
-      function signal(val, goodAbove, badBelow) {
-        if (val >= goodAbove) return '<td class="green">✦ Good</td>';
-        if (val <= badBelow) return '<td class="red">✖ Weak</td>';
-        return '<td class="yellow">◆ Fair</td>';
-      }
-
-      function colorClass(val, goodAbove, badBelow) {
-        if (val >= goodAbove) return 'green';
-        if (val <= badBelow) return 'red';
-        return 'yellow';
-      }
-
-      // ─── MAIN ANALYSIS ───────────────────────────────────────────────────────────
-      function analyzeStock() {
-        const g = (id) => parseFloat(document.getElementById(id).value) || 0;
-        const gs = (id) =>
-          document.getElementById(id).value.trim().toUpperCase();
-
-        S = {
-          ticker: gs('inp-ticker') || 'STOCK',
-          price: g('inp-price'),
-          eps: g('inp-eps'),
-          revenue: g('inp-revenue'),
-          netprofit: g('inp-netprofit'),
-          ebitda: g('inp-ebitda'),
-          epsGrowth: g('inp-eps-growth'),
-          revGrowth: g('inp-rev-growth'),
-          bv: g('inp-bv'),
-          assets: g('inp-assets'),
-          liabilities: g('inp-liabilities'),
-          equity: g('inp-equity'),
-          std: g('inp-std'),
-          ltd: g('inp-ltd'),
-          cash: g('inp-cash'),
-          shares: g('inp-shares'),
-          dps: g('inp-dps'),
-          indPe: g('inp-ind-pe') || 15,
-          roe: g('inp-roe'),
-          roa: g('inp-roa'),
-        };
-
-        // Derived
-        S.pe = S.price / S.eps;
-        S.pb = S.price / S.bv;
-        S.dy = S.dps ? (S.dps / S.price) * 100 : 0;
-        S.marketCap = S.price * S.shares * 1e9;
-        S.totalDebt = S.std + S.ltd;
-        S.netDebt = S.totalDebt - S.cash;
-        S.de = S.equity ? S.totalDebt / S.equity : 0;
-        S.netMargin = S.revenue ? (S.netprofit / S.revenue) * 100 : 0;
-        S.payoutRatio = S.eps ? (S.dps / S.eps) * 100 : 0;
-        S.currentRatio = S.std ? S.cash / S.std : 0;
-
-        analyzed = true;
-        document.getElementById('tickerDisplay').value = S.ticker;
-        document.getElementById('last-updated').textContent =
-          new Date().toLocaleTimeString('id-ID');
-
-        renderOverview();
-        renderValuation();
-        renderFundamentals();
-        renderDividend();
-        renderDCF();
-        renderVerdict();
-      }
-
-      // ─── OVERVIEW ────────────────────────────────────────────────────────────────
-      function renderOverview() {
-        document.getElementById('overview-empty').style.display = 'none';
-        document.getElementById('overview-content').style.display = 'block';
-
-        // Stats
-        const pe_class = S.pe < 15 ? 'green' : S.pe < 25 ? 'yellow' : 'red';
-        const pb_class = S.pb < 1 ? 'green' : S.pb < 3 ? 'yellow' : 'red';
-        const dy_class = S.dy > 5 ? 'green' : S.dy > 2 ? 'yellow' : 'red';
-        const roe_class = S.roe > 15 ? 'green' : S.roe > 8 ? 'yellow' : 'red';
-
-        document.getElementById('overview-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Stock Price</div>
-      <div class="stat-value">Rp ${fmt(S.price, 0)}</div>
-      <div class="stat-sub">${S.ticker} · IDX</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Market Cap</div>
-      <div class="stat-value" style="font-size:20px;">${fmtRp(S.marketCap)}</div>
-      <div class="stat-sub">${fmt(S.shares, 2)}B shares outstanding</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">P/E Ratio</div>
-      <div class="stat-value ${pe_class}">${fmt(S.pe, 1)}×</div>
-      <div class="stat-sub">EPS: Rp ${fmt(S.eps, 2)}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">P/B Ratio</div>
-      <div class="stat-value ${pb_class}">${fmt(S.pb, 2)}×</div>
-      <div class="stat-sub">BV/share: Rp ${fmt(S.bv, 2)}</div>
-    </div>
-  `;
-
-        // Health score
-        const scores = [
-          { name: 'Valuation', val: scoreValuation(), max: 30 },
-          { name: 'Profitability', val: scoreProfitability(), max: 25 },
-          { name: 'Debt Health', val: scoreDebt(), max: 25 },
-          { name: 'Dividend', val: scoreDividend(), max: 20 },
-        ];
-
-        const total = scores.reduce((a, b) => a + b.val, 0);
-        const maxTotal = scores.reduce((a, b) => a + b.max, 0);
-        const pct100 = (total / maxTotal) * 100;
-
-        // Animate gauge
-        setTimeout(() => {
-          const dashoffset = 251.2 * (1 - pct100 / 100);
-          document.getElementById('gauge-fill').style.strokeDashoffset =
-            dashoffset;
-          const deg = -90 + (pct100 / 100) * 180;
-          document.getElementById('gauge-needle').style.transform =
-            `rotate(${deg}deg)`;
-        }, 100);
-
-        const scoreColor =
-          pct100 >= 70
-            ? 'var(--green)'
-            : pct100 >= 45
-              ? 'var(--yellow)'
-              : 'var(--red)';
-        const scoreLabel =
-          pct100 >= 70 ? 'Strong' : pct100 >= 45 ? 'Moderate' : 'Weak';
-        document.getElementById('health-score-num').textContent =
-          Math.round(pct100);
-        document.getElementById('health-score-num').style.color = scoreColor;
-        document.getElementById('health-score-label').textContent =
-          scoreLabel + ' Financial Health';
-
-        // Health bars
-        const barColors = [
-          'var(--blue)',
-          'var(--green)',
-          'var(--yellow)',
-          'var(--red)',
-        ];
-        document.getElementById('health-bars').innerHTML = scores
-          .map(
-            (s, i) => `
-    <div class="hbar-row">
-      <div class="hbar-label">${s.name}</div>
-      <div class="hbar-track">
-        <div class="hbar-fill" style="width:0%; background:${barColors[i]};" id="hbar-${i}"></div>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureView — Security Analyzer</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1628'/%3E%3Cpath d='M6 22 A11 11 0 1 1 26 22' fill='none' stroke='%231E2D4A' stroke-width='2.5' stroke-linecap='round'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%23F43F5E'/%3E%3Cstop offset='50%25' stop-color='%23F59E0B'/%3E%3Cstop offset='100%25' stop-color='%2310B981'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M6 22 A11 11 0 1 1 26 22' fill='none' stroke='url(%23g)' stroke-width='2.5' stroke-linecap='round' stroke-dasharray='50 100' stroke-dashoffset='-10'/%3E%3Cline x1='16' y1='22' x2='10' y2='10' stroke='white' stroke-width='1.5' stroke-linecap='round' opacity='0.9'/%3E%3Ccircle cx='16' cy='22' r='2' fill='%233B82F6'/%3E%3Ctext x='16' y='29' font-family='monospace' font-size='5' font-weight='600' fill='%233B82F6' text-anchor='middle' letter-spacing='1'%3ESV%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080D1A;--bg2:#0E1628;--bg3:#141E35;--bg4:#1A2540;
+  --border:#1E2D4A;--border2:#243352;
+  --blue:#3B82F6;--blue-dim:rgba(59,130,246,0.12);
+  --green:#10B981;--green-dim:rgba(16,185,129,0.12);
+  --red:#F43F5E;--red-dim:rgba(244,63,94,0.12);
+  --yellow:#F59E0B;--yellow-dim:rgba(245,158,11,0.12);
+  --text:#E2E8F0;--text2:#94A3B8;--text3:#4A5D80;
+  --mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;top:0;left:0}
+.logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--blue);letter-spacing:-0.5px}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.nav{padding:16px 12px;flex:1}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:0 8px;margin-bottom:6px;margin-top:16px}
+.nav-label:first-child{margin-top:0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;margin-bottom:2px;border:1px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue-dim);color:var(--blue);border-color:rgba(59,130,246,0.2)}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.ticker-input-wrap{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;transition:border-color .2s}
+.ticker-input-wrap:focus-within{border-color:var(--blue)}
+.ticker-input-wrap span{font-family:var(--mono);font-size:12px;color:var(--text3)}
+.ticker-input{background:none;border:none;outline:none;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);width:120px;letter-spacing:1px}
+.ticker-input::placeholder{color:var(--text3);font-weight:400}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;font-family:var(--mono)}
+.badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(244,63,94,0.2)}
+.badge-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(245,158,11,0.2)}
+
+/* CONTENT */
+.content{padding:24px 32px;flex:1}
+.section{display:none}
+.section.active{display:block}
+.section-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:20px}
+
+/* SECTION NAV BAR */
+.section-nav{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.snav-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:var(--sans);white-space:nowrap}
+.snav-btn:hover:not(:disabled){background:var(--bg4);color:var(--text);border-color:var(--blue)}
+.snav-btn:disabled{opacity:.3;cursor:not-allowed}
+.snav-btn.edit-btn{background:var(--blue-dim);color:var(--blue);border-color:rgba(59,130,246,0.3)}
+.snav-btn.edit-btn:hover{background:rgba(59,130,246,0.2);border-color:var(--blue)}
+.snav-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:0}
+.snav-dots{display:flex;gap:5px;align-items:center}
+.snav-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .2s;cursor:pointer}
+.snav-dot.active{background:var(--blue);width:18px;border-radius:3px}
+.snav-label{font-size:11px;color:var(--text3);font-family:var(--mono);letter-spacing:.5px;white-space:nowrap}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px}
+.spacer{margin-bottom:16px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-title{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:16px}
+.card-accent{border-top:2px solid var(--blue)}
+.card-accent-green{border-top:2px solid var(--green)}
+.card-accent-red{border-top:2px solid var(--red)}
+.card-accent-yellow{border-top:2px solid var(--yellow)}
+
+/* STAT CARDS */
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.stat-label{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.stat-value{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--text);line-height:1;margin-bottom:6px}
+.stat-sub{font-size:11px;color:var(--text2)}
+
+/* HEALTH GAUGE */
+.health-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.gauge-svg{width:200px;height:120px}
+.health-score-num{font-family:var(--mono);font-size:42px;font-weight:600;text-align:center;line-height:1;margin-top:-8px}
+.health-label{font-size:11px;color:var(--text2);text-align:center;margin-top:4px;font-weight:500}
+.health-bars{width:100%;margin-top:16px}
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hbar-label{font-size:11px;color:var(--text2);width:90px;flex-shrink:0}
+.hbar-track{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+.hbar-val{font-family:var(--mono);font-size:11px;color:var(--text2);width:36px;text-align:right}
+
+/* INPUT FORM */
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.input-group input{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
+.input-group input:focus{border-color:var(--blue)}
+.input-group input::placeholder{color:var(--text3)}
+.input-section-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue);padding:12px 0 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:4px}
+.input-section-label:first-child{border-top:none;padding-top:0}
+
+/* BUTTONS */
+.btn{padding:11px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:var(--sans);letter-spacing:.3px;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:#2563EB;transform:translateY(-1px)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--bg4);color:var(--text)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(244,63,94,0.3)}
+.btn-danger:hover{background:rgba(244,63,94,0.2)}
+.btn-sm{padding:7px 14px;font-size:12px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:13px;color:var(--text2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3);color:var(--text)}
+td.label-col{font-family:var(--sans);color:var(--text);font-size:13px;font-weight:500}
+td.green{color:var(--green)}td.red{color:var(--red)}td.yellow{color:var(--yellow)}td.blue{color:var(--blue)}
+
+/* RATIO METER */
+.ratio-meter{margin-bottom:14px}
+.ratio-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ratio-name{font-size:12px;color:var(--text);font-weight:500}
+.ratio-value{font-family:var(--mono);font-size:13px;font-weight:600}
+.ratio-track{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.ratio-fill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.34,1.56,.64,1)}
+.ratio-zones{display:flex;justify-content:space-between;margin-top:4px}
+.ratio-zone-label{font-size:9px;color:var(--text3)}
+
+/* DCF */
+.dcf-result{text-align:center;padding:24px;background:var(--bg3);border-radius:12px;border:1px solid var(--border2);margin-top:16px}
+.dcf-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.dcf-value{font-family:var(--mono);font-size:36px;font-weight:600}
+.dcf-updown{font-size:13px;margin-top:6px;font-weight:500}
+
+/* VERDICT */
+.verdict-panel{border-radius:12px;padding:20px;margin-bottom:16px}
+.verdict-green{background:var(--green-dim);border:1px solid rgba(16,185,129,0.25)}
+.verdict-red{background:var(--red-dim);border:1px solid rgba(244,63,94,0.25)}
+.verdict-yellow{background:var(--yellow-dim);border:1px solid rgba(245,158,11,0.25)}
+.verdict-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.verdict-green .verdict-title{color:var(--green)}
+.verdict-red .verdict-title{color:var(--red)}
+.verdict-yellow .verdict-title{color:var(--yellow)}
+.verdict-body{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.checklist-item:last-child{border-bottom:none}
+.check-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+.check-dot.pass{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,0.3)}
+.check-dot.fail{background:var(--red-dim);color:var(--red);border:1px solid rgba(244,63,94,0.3)}
+.check-dot.warn{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(245,158,11,0.3)}
+.check-text{flex:1}
+.check-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.check-detail{font-size:11px;color:var(--text2)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:20px;border:1px solid var(--border)}
+.tab{flex:1;padding:8px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;color:var(--text3);transition:all .15s;border:none;background:none;font-family:var(--sans)}
+.tab.active{background:var(--bg);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .icon{font-size:36px;margin-bottom:12px}
+.empty-state p{font-size:13px;line-height:1.6}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* TOAST */
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0}}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+@media(max-width:900px){
+  .sidebar{width:60px}
+  .logo-mark,.logo-sub,.nav-label,.nav-item span{display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .main{margin-left:60px}
+  .grid-3,.grid-4{grid-template-columns:1fr 1fr}
+  .content{padding:20px 16px}
+  .topbar{padding:0 16px}
+}
+@media(max-width:600px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .input-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">SecureView</div>
+    <div class="logo-sub">Security Analyzer</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Analysis</div>
+    <div class="nav-item" id="nav-overview" onclick="goSection('overview')"><span class="nav-icon">◈</span><span>Overview</span></div>
+    <div class="nav-item" id="nav-valuation" onclick="goSection('valuation')"><span class="nav-icon">⬡</span><span>Valuation</span></div>
+    <div class="nav-item" id="nav-fundamentals" onclick="goSection('fundamentals')"><span class="nav-icon">⊞</span><span>Fundamentals</span></div>
+    <div class="nav-item" id="nav-dividend" onclick="goSection('dividend')"><span class="nav-icon">◎</span><span>Dividend</span></div>
+    <div class="nav-item" id="nav-dcf" onclick="goSection('dcf')"><span class="nav-icon">∿</span><span>DCF Model</span></div>
+    <div class="nav-label">Tools</div>
+    <div class="nav-item" id="nav-input" onclick="goSection('input')"><span class="nav-icon">⊕</span><span>Input Data</span></div>
+    <div class="nav-item" id="nav-verdict" onclick="goSection('verdict')"><span class="nav-icon">◉</span><span>Final Verdict</span></div>
+  </nav>
+  <div class="sidebar-footer">v1.0 · IDX</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="ticker-input-wrap">
+        <span>IDX:</span>
+        <input class="ticker-input" id="tickerDisplay" placeholder="TICKER" maxlength="10" readonly>
       </div>
-      <div class="hbar-val">${Math.round((s.val / s.max) * 100)}</div>
+      <span id="topbar-badge" class="badge badge-blue" style="display:none;"></span>
     </div>
-  `
-          )
-          .join('');
+    <div class="topbar-right">
+      <span style="font-size:11px;color:var(--text3);font-family:var(--mono);" id="last-updated"></span>
+      <button class="btn btn-danger btn-sm" id="btn-clear" onclick="clearData()" style="display:none;">✕ Clear</button>
+      <button class="btn btn-primary btn-sm" onclick="goSection('input')">+ Input Data</button>
+    </div>
+  </div>
 
-        setTimeout(
-          () =>
-            scores.forEach((s, i) => {
-              document.getElementById('hbar-' + i).style.width =
-                (s.val / s.max) * 100 + '%';
-            }),
-          150
-        );
+  <!-- CONTENT -->
+  <div class="content">
 
-        // Key ratios
-        document.getElementById('key-ratios').innerHTML = [
-          {
-            name: 'P/E Ratio',
-            val: fmt(S.pe, 1) + '×',
-            zone: S.pe < 15 ? 'Cheap' : S.pe < 25 ? 'Fair' : 'Expensive',
-            cls: pe_class,
-            pct: Math.min(100, (S.pe / 40) * 100),
-          },
-          {
-            name: 'P/B Ratio',
-            val: fmt(S.pb, 2) + '×',
-            zone: S.pb < 1 ? 'Discount' : S.pb < 3 ? 'Fair' : 'Premium',
-            cls: pb_class,
-            pct: Math.min(100, (S.pb / 6) * 100),
-          },
-          {
-            name: 'ROE',
-            val: fmt(S.roe, 1) + '%',
-            zone: S.roe > 15 ? 'Strong' : S.roe > 8 ? 'Moderate' : 'Weak',
-            cls: roe_class,
-            pct: Math.min(100, (S.roe / 30) * 100),
-          },
-          {
-            name: 'Dividend Yield',
-            val: fmt(S.dy, 2) + '%',
-            zone: S.dy > 5 ? 'High' : S.dy > 2 ? 'Moderate' : 'Low',
-            cls: dy_class,
-            pct: Math.min(100, (S.dy / 10) * 100),
-          },
-          {
-            name: 'Net Margin',
-            val: fmt(S.netMargin, 1) + '%',
-            zone:
-              S.netMargin > 20 ? 'Strong' : S.netMargin > 10 ? 'Good' : 'Thin',
-            cls: colorClass(S.netMargin, 20, 10),
-            pct: Math.min(100, (S.netMargin / 30) * 100),
-          },
-          {
-            name: 'D/E Ratio',
-            val: fmt(S.de, 2) + '×',
-            zone: S.de < 0.5 ? 'Low' : S.de < 1.5 ? 'Moderate' : 'High',
-            cls: S.de < 0.5 ? 'green' : S.de < 1.5 ? 'yellow' : 'red',
-            pct: Math.min(100, (S.de / 3) * 100),
-          },
-        ]
-          .map(
-            (r) => `
-    <div class="ratio-meter">
-      <div class="ratio-header">
-        <span class="ratio-name">${r.name}</span>
-        <span class="ratio-value ${r.cls}">${r.val}</span>
+    <!-- SECTION NAV -->
+    <div class="section-nav">
+      <button class="snav-btn" id="snav-prev" onclick="navStep(-1)">←</button>
+      <div class="snav-center">
+        <div class="snav-dots" id="snav-dots"></div>
+        <span class="snav-label" id="snav-label"></span>
       </div>
-      <div class="ratio-track">
-        <div class="ratio-fill" id="rf-${r.name.replace(/\s/g, '')}" style="width:0%; background:var(--${r.cls === 'green' ? 'green' : r.cls === 'red' ? 'red' : 'yellow'});"></div>
-      </div>
-      <div class="ratio-zones">
-        <span class="ratio-zone-label">${r.zone}</span>
-      </div>
+      <button class="snav-btn edit-btn" id="snav-edit" onclick="goSection('input')" style="display:none;">✎ Edit Data</button>
+      <button class="snav-btn" id="snav-next" onclick="navStep(1)">→</button>
     </div>
-  `
-          )
-          .join('');
 
-        setTimeout(() => {
-          [
-            { name: 'P/ERatio', pct: Math.min(100, (S.pe / 40) * 100) },
-            { name: 'P/BRatio', pct: Math.min(100, (S.pb / 6) * 100) },
-            { name: 'ROE', pct: Math.min(100, (S.roe / 30) * 100) },
-            { name: 'DividendYield', pct: Math.min(100, (S.dy / 10) * 100) },
-            { name: 'NetMargin', pct: Math.min(100, (S.netMargin / 30) * 100) },
-            { name: 'D/ERatio', pct: Math.min(100, (S.de / 3) * 100) },
-          ].forEach((r) => {
-            const el = document.getElementById('rf-' + r.name);
-            if (el) el.style.width = r.pct + '%';
-          });
-        }, 200);
-      }
-
-      // ─── SCORING ─────────────────────────────────────────────────────────────────
-      function scoreValuation() {
-        let s = 0;
-        if (S.pe < 10) s += 15;
-        else if (S.pe < 15) s += 12;
-        else if (S.pe < 25) s += 7;
-        else s += 2;
-        if (S.pb < 1) s += 15;
-        else if (S.pb < 2) s += 10;
-        else if (S.pb < 3) s += 5;
-        else s += 1;
-        return Math.min(30, s);
-      }
-
-      function scoreProfitability() {
-        let s = 0;
-        if (S.roe > 20) s += 12;
-        else if (S.roe > 15) s += 9;
-        else if (S.roe > 8) s += 5;
-        else s += 1;
-        if (S.netMargin > 20) s += 8;
-        else if (S.netMargin > 10) s += 5;
-        else if (S.netMargin > 5) s += 3;
-        else s += 0;
-        if (S.epsGrowth > 10) s += 5;
-        else if (S.epsGrowth > 0) s += 3;
-        else s += 0;
-        return Math.min(25, s);
-      }
-
-      function scoreDebt() {
-        let s = 0;
-        if (S.de < 0.3) s += 12;
-        else if (S.de < 0.7) s += 9;
-        else if (S.de < 1.5) s += 5;
-        else s += 1;
-        if (S.cash > S.totalDebt) s += 8;
-        else if (S.cash > S.std) s += 5;
-        else s += 2;
-        if (S.currentRatio > 2) s += 5;
-        else if (S.currentRatio > 1) s += 3;
-        else s += 0;
-        return Math.min(25, s);
-      }
-
-      function scoreDividend() {
-        if (!S.dps) return 8;
-        let s = 0;
-        if (S.dy > 6) s += 10;
-        else if (S.dy > 3) s += 7;
-        else if (S.dy > 1) s += 4;
-        else s += 1;
-        if (S.payoutRatio < 60) s += 10;
-        else if (S.payoutRatio < 80) s += 6;
-        else if (S.payoutRatio < 100) s += 3;
-        else s += 0;
-        return Math.min(20, s);
-      }
-
-      // ─── VALUATION ───────────────────────────────────────────────────────────────
-      function renderValuation() {
-        document.getElementById('valuation-empty').style.display = 'none';
-        document.getElementById('valuation-content').style.display = 'block';
-
-        const fvPE = S.eps * S.indPe;
-        const fvPB = S.bv * 1.5;
-        const fvPEG = S.epsGrowth > 0 ? S.eps * S.epsGrowth : null;
-        const avgFV = fvPEG ? (fvPE + fvPB + fvPEG) / 3 : (fvPE + fvPB) / 2;
-        const upside = ((avgFV - S.price) / S.price) * 100;
-
-        const topCls = upside >= 20 ? 'green' : upside >= 0 ? 'yellow' : 'red';
-
-        document.getElementById('val-targets').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Current Price</div>
-      <div class="stat-value">Rp ${fmt(S.price, 0)}</div>
-      <div class="stat-sub">${S.ticker}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Avg Fair Value</div>
-      <div class="stat-value ${topCls}">Rp ${fmt(avgFV, 0)}</div>
-      <div class="stat-sub">Blended estimate</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Upside / Downside</div>
-      <div class="stat-value ${topCls}">${pct(upside)}</div>
-      <div class="stat-sub">${upside >= 0 ? 'Potential upside' : 'Potential downside'}</div>
-    </div>
-  `;
-
-        // Meters
-        document.getElementById('val-meters').innerHTML = [
-          {
-            name: 'P/E Ratio',
-            val: fmt(S.pe, 1) + '×',
-            lo: 'Cheap <10',
-            hi: 'Expensive >30',
-            pct: Math.min(100, (S.pe / 40) * 100),
-            color: S.pe < 15 ? 'green' : S.pe < 25 ? 'yellow' : 'red',
-          },
-          {
-            name: 'P/B Ratio',
-            val: fmt(S.pb, 2) + '×',
-            lo: 'Discount <1',
-            hi: 'Premium >4',
-            pct: Math.min(100, (S.pb / 6) * 100),
-            color: S.pb < 1 ? 'green' : S.pb < 3 ? 'yellow' : 'red',
-          },
-          {
-            name: 'Dividend Yield',
-            val: fmt(S.dy, 2) + '%',
-            lo: 'Low <2%',
-            hi: 'High >6%',
-            pct: Math.min(100, (S.dy / 10) * 100),
-            color: S.dy > 5 ? 'green' : S.dy > 2 ? 'yellow' : 'red',
-          },
-        ]
-          .map(
-            (r) => `
-    <div class="ratio-meter">
-      <div class="ratio-header">
-        <span class="ratio-name">${r.name}</span>
-        <span class="ratio-value ${r.color}">${r.val}</span>
-      </div>
-      <div class="ratio-track">
-        <div class="ratio-fill" style="width:${r.pct}%; background:var(--${r.color === 'green' ? 'green' : r.color === 'red' ? 'red' : 'yellow'});"></div>
-      </div>
-      <div class="ratio-zones" style="justify-content:space-between;">
-        <span class="ratio-zone-label">${r.lo}</span>
-        <span class="ratio-zone-label">${r.hi}</span>
-      </div>
-    </div>
-  `
-          )
-          .join('');
-
-        // Table
-        const rows = [
-          {
-            method: 'P/E Method',
-            fair: fvPE,
-            note: `EPS × Industry P/E (${S.indPe}×)`,
-          },
-          {
-            method: 'P/B Method',
-            fair: fvPB,
-            note: 'BV × 1.5 (moderate premium)',
-          },
-          {
-            method: 'P/B Conservative',
-            fair: S.bv,
-            note: 'BV × 1.0 (no premium)',
-          },
-        ];
-        if (fvPEG)
-          rows.push({
-            method: 'PEG Method',
-            fair: fvPEG,
-            note: `EPS × Growth Rate (${S.epsGrowth}%)`,
-          });
-
-        document.getElementById('val-table').innerHTML = rows
-          .map((r) => {
-            const up = ((r.fair - S.price) / S.price) * 100;
-            const cls = up >= 10 ? 'green' : up >= 0 ? 'yellow' : 'red';
-            const sig =
-              up >= 10 ? '✦ Cheap' : up >= 0 ? '◆ Fair' : '✖ Expensive';
-            return `<tr>
-      <td class="label-col">${r.method}<br><span style="font-size:10px;color:var(--text3);">${r.note}</span></td>
-      <td>Rp ${fmt(r.fair, 0)}</td>
-      <td class="${cls}">${pct(up)}</td>
-      <td class="${cls}">${sig}</td>
-    </tr>`;
-          })
-          .join('');
-      }
-
-      // ─── FUNDAMENTALS ────────────────────────────────────────────────────────────
-      function renderFundamentals() {
-        document.getElementById('fund-empty').style.display = 'none';
-        document.getElementById('fund-content').style.display = 'block';
-
-        document.getElementById('profit-table').innerHTML = [
-          ['ROE', fmt(S.roe, 1) + '%', '> 15%', S.roe, 15, 8],
-          ['ROA', fmt(S.roa, 1) + '%', '> 8%', S.roa, 8, 4],
-          [
-            'Net Profit Margin',
-            fmt(S.netMargin, 1) + '%',
-            '> 20%',
-            S.netMargin,
-            20,
-            10,
-          ],
-          ['EPS Growth YoY', pct(S.epsGrowth), '> 10%', S.epsGrowth, 10, 0],
-          ['Revenue Growth YoY', pct(S.revGrowth), '> 8%', S.revGrowth, 8, 0],
-        ]
-          .map(
-            ([name, val, bench, raw, good, bad]) => `<tr>
-    <td class="label-col">${name}</td>
-    <td>${val}</td>
-    <td style="color:var(--text3);">${bench}</td>
-    ${signal(raw, good, bad)}
-  </tr>`
-          )
-          .join('');
-
-        document.getElementById('debt-table').innerHTML = [
-          ['Debt-to-Equity', fmt(S.de, 2) + '×', '< 0.5', -S.de, -0.5, -1.5],
-          [
-            'Total Debt (B)',
-            fmt(S.totalDebt, 0),
-            '< Equity',
-            -S.totalDebt,
-            -S.equity * 0.5,
-            -S.equity,
-          ],
-          [
-            'Net Debt (B)',
-            fmt(S.netDebt, 0),
-            'Negative = Cash+',
-            -S.netDebt,
-            0,
-            S.cash,
-          ],
-          [
-            'Cash vs Short-term Debt',
-            fmt(S.cash, 0) + ' vs ' + fmt(S.std, 0),
-            'Cash > STD',
-            S.cash - S.std,
-            0,
-            -S.std,
-          ],
-          [
-            'Current Ratio (approx)',
-            fmt(S.currentRatio, 2) + '×',
-            '> 1.5',
-            S.currentRatio,
-            1.5,
-            1,
-          ],
-        ]
-          .map(
-            ([name, val, bench, raw, good, bad]) => `<tr>
-    <td class="label-col">${name}</td>
-    <td>${val}</td>
-    <td style="color:var(--text3);">${bench}</td>
-    ${signal(raw, good, bad)}
-  </tr>`
-          )
-          .join('');
-
-        const assetTurnover = S.assets ? S.revenue / S.assets : 0;
-        const equityMultiplier = S.equity ? S.assets / S.equity : 0;
-        document.getElementById('eff-table').innerHTML = [
-          [
-            'Asset Turnover',
-            fmt(assetTurnover, 2) + '×',
-            '> 0.5',
-            assetTurnover,
-            0.5,
-            0.2,
-          ],
-          [
-            'Equity Multiplier',
-            fmt(equityMultiplier, 2) + '×',
-            '< 3×',
-            -equityMultiplier,
-            -1,
-            -3,
-          ],
-          ['Revenue / Employee proxy', '—', '—', 0, 0, 0],
-          [
-            'EBITDA Margin',
-            fmt(S.revenue ? (S.ebitda / S.revenue) * 100 : 0, 1) + '%',
-            '> 30%',
-            S.revenue ? (S.ebitda / S.revenue) * 100 : 0,
-            30,
-            15,
-          ],
-        ]
-          .map(
-            ([name, val, bench, raw, good, bad]) => `<tr>
-    <td class="label-col">${name}</td>
-    <td>${val}</td>
-    <td style="color:var(--text3);">${bench}</td>
-    ${signal(raw, good, bad)}
-  </tr>`
-          )
-          .join('');
-      }
-
-      // ─── DIVIDEND ────────────────────────────────────────────────────────────────
-      function renderDividend() {
-        document.getElementById('div-empty').style.display = 'none';
-        document.getElementById('div-content').style.display = 'block';
-
-        const dy_cls = S.dy > 5 ? 'green' : S.dy > 2 ? 'yellow' : 'red';
-        const pr_cls =
-          S.payoutRatio < 60 ? 'green' : S.payoutRatio < 80 ? 'yellow' : 'red';
-
-        document.getElementById('div-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">Dividend / Share</div>
-      <div class="stat-value">Rp ${fmt(S.dps, 0)}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Dividend Yield</div>
-      <div class="stat-value ${dy_cls}">${fmt(S.dy, 2)}%</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Payout Ratio</div>
-      <div class="stat-value ${pr_cls}">${fmt(S.payoutRatio, 1)}%</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Annual Income / Lot</div>
-      <div class="stat-value" style="font-size:18px;">Rp ${fmt(S.dps * 100, 0)}</div>
-      <div class="stat-sub">per 100 shares</div>
-    </div>
-  `;
-
-        calcDividend();
-
-        const checks = [
-          {
-            ok: S.payoutRatio < 80,
-            title: 'Payout ratio below 80%',
-            detail: `Current: ${fmt(S.payoutRatio, 1)}% — ${S.payoutRatio < 60 ? 'Healthy' : 'Getting high'}`,
-          },
-          {
-            ok: S.epsGrowth > 0,
-            title: 'EPS is growing',
-            detail: `EPS growth: ${pct(S.epsGrowth)} — dividend needs profits to be sustainable`,
-          },
-          {
-            ok: S.de < 1.5,
-            title: 'Manageable debt level',
-            detail: `D/E: ${fmt(S.de, 2)}× — high debt threatens future dividends`,
-          },
-          {
-            ok: S.cash > S.std,
-            title: 'Cash covers short-term debt',
-            detail: `Cash: Rp${fmt(S.cash, 0)}B vs STD: Rp${fmt(S.std, 0)}B`,
-          },
-          {
-            ok: S.dy > 2,
-            title: 'Yield is meaningful (>2%)',
-            detail: `Current yield: ${fmt(S.dy, 2)}%`,
-          },
-        ];
-
-        document.getElementById('div-checklist').innerHTML = checks
-          .map(
-            (c) => `
-    <div class="checklist-item">
-      <div class="check-dot ${c.ok ? 'pass' : 'fail'}">${c.ok ? '✓' : '✖'}</div>
-      <div class="check-text">
-        <div class="check-title">${c.title}</div>
-        <div class="check-detail">${c.detail}</div>
-      </div>
-    </div>
-  `
-          )
-          .join('');
-      }
-
-      function calcDividend() {
-        if (!analyzed) return;
-        const shares =
-          parseFloat(document.getElementById('div-shares').value) || 0;
-        if (!shares) {
-          document.getElementById('div-calc-result').innerHTML =
-            '<p style="font-size:12px;color:var(--text3);">Enter number of shares above.</p>';
-          return;
-        }
-        const income = shares * S.dps;
-        const capital = shares * S.price;
-        const lots = Math.floor(shares / 100);
-        document.getElementById('div-calc-result').innerHTML = `
-    <div style="background:var(--bg3);border-radius:10px;padding:16px;border:1px solid var(--border2);">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div>
-          <div class="stat-label" style="margin-bottom:4px;">Annual Dividend Income</div>
-          <div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green);">Rp ${fmt(income, 0)}</div>
-        </div>
-        <div>
-          <div class="stat-label" style="margin-bottom:4px;">Capital Required</div>
-          <div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);">Rp ${fmt(capital, 0)}</div>
-        </div>
-        <div>
-          <div class="stat-label" style="margin-bottom:4px;">Monthly Equivalent</div>
-          <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--blue);">Rp ${fmt(income / 12, 0)}</div>
-        </div>
-        <div>
-          <div class="stat-label" style="margin-bottom:4px;">Lots</div>
-          <div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text2);">${fmt(lots, 0)} lot</div>
+    <!-- OVERVIEW -->
+    <div class="section" id="section-overview">
+      <div class="section-title">Overview</div>
+      <div id="overview-empty" class="empty-state"><div class="icon">◈</div><p>No security loaded yet.<br>Click <strong>+ Input Data</strong> to get started.</p></div>
+      <div id="overview-content" style="display:none;">
+        <div class="grid-4 spacer" id="overview-stats"></div>
+        <div class="grid-2">
+          <div class="card card-accent">
+            <div class="card-title">Financial Health Score</div>
+            <div class="health-wrap">
+              <svg class="gauge-svg" viewBox="0 0 200 120">
+                <defs><linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#F43F5E"/><stop offset="50%" style="stop-color:#F59E0B"/><stop offset="100%" style="stop-color:#10B981"/></linearGradient></defs>
+                <path d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="#1A2540" stroke-width="14" stroke-linecap="round"/>
+                <path d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251.2" id="gauge-fill" stroke-dashoffset="251.2" style="transition:stroke-dashoffset 1.2s cubic-bezier(.34,1.56,.64,1)"/>
+                <line id="gauge-needle" x1="100" y1="100" x2="100" y2="30" stroke="white" stroke-width="2" stroke-linecap="round" style="transform-origin:100px 100px;transform:rotate(-90deg);transition:transform 1.2s cubic-bezier(.34,1.56,.64,1)"/>
+                <circle cx="100" cy="100" r="5" fill="white" opacity="0.8"/>
+                <text x="16" y="118" font-size="9" fill="#4A5D80" font-family="IBM Plex Mono">0</text>
+                <text x="89" y="20" font-size="9" fill="#4A5D80" font-family="IBM Plex Mono">50</text>
+                <text x="180" y="118" font-size="9" fill="#4A5D80" font-family="IBM Plex Mono">100</text>
+              </svg>
+              <div class="health-score-num" id="health-score-num">—</div>
+              <div class="health-label" id="health-score-label">Enter data to calculate</div>
+            </div>
+            <div class="health-bars" id="health-bars"></div>
+          </div>
+          <div class="card card-accent-green"><div class="card-title">Key Ratios</div><div id="key-ratios"></div></div>
         </div>
       </div>
     </div>
-  `;
-      }
 
-      // ─── DCF ─────────────────────────────────────────────────────────────────────
-      function renderDCF() {
-        document.getElementById('dcf-empty').style.display = 'none';
-        document.getElementById('dcf-content').style.display = 'block';
-        calcDCF();
-      }
-
-      function calcDCF() {
-        if (!analyzed) return;
-        const g1 =
-          (parseFloat(document.getElementById('dcf-g1').value) || 8) / 100;
-        const g2 =
-          (parseFloat(document.getElementById('dcf-g2').value) || 4) / 100;
-        const tg =
-          (parseFloat(document.getElementById('dcf-tg').value) || 3) / 100;
-        const wacc =
-          (parseFloat(document.getElementById('dcf-wacc').value) || 10) / 100;
-
-        let eps = S.eps;
-        let totalPV = 0;
-        let rows = '';
-
-        for (let y = 1; y <= 10; y++) {
-          const g = y <= 5 ? g1 : g2;
-          eps = eps * (1 + g);
-          const pv = eps / Math.pow(1 + wacc, y);
-          totalPV += pv;
-          const cls = eps > S.eps ? 'green' : 'red';
-          rows += `<tr>
-      <td style="color:var(--text2);">Year ${y}</td>
-      <td class="${cls}">Rp ${fmt(eps, 2)}</td>
-      <td>Rp ${fmt(pv, 2)}</td>
-      <td style="color:var(--text3);">${y <= 5 ? '+' + fmt(g1 * 100, 0) + '%' : '+' + fmt(g2 * 100, 0) + '%'}</td>
-    </tr>`;
-        }
-
-        // Terminal value
-        const terminalEPS = eps * (1 + tg);
-        const terminalValue = terminalEPS / (wacc - tg);
-        const terminalPV = terminalValue / Math.pow(1 + wacc, 10);
-        totalPV += terminalPV;
-
-        const upside = ((totalPV - S.price) / S.price) * 100;
-        const cls =
-          upside >= 20
-            ? 'var(--green)'
-            : upside >= 0
-              ? 'var(--yellow)'
-              : 'var(--red)';
-
-        document.getElementById('dcf-result').innerHTML = `
-    <div class="dcf-label">DCF Intrinsic Value</div>
-    <div class="dcf-value" style="color:${cls};">Rp ${fmt(totalPV, 0)}</div>
-    <div class="dcf-updown" style="color:${cls};">${upside >= 0 ? 'Undervalued by' : 'Overvalued by'} ${fmt(Math.abs(upside), 1)}%</div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px;">Terminal value PV: Rp ${fmt(terminalPV, 0)}</div>
-  `;
-
-        document.getElementById('dcf-table-wrap').innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Year</th><th>Projected EPS</th><th>Present Value</th><th>Growth</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+    <!-- VALUATION -->
+    <div class="section" id="section-valuation">
+      <div class="section-title">Valuation Analysis</div>
+      <div id="valuation-empty" class="empty-state"><div class="icon">⬡</div><p>No data yet. Input your stock's financials first.</p></div>
+      <div id="valuation-content" style="display:none;">
+        <div class="grid-3 spacer" id="val-targets"></div>
+        <div class="grid-2">
+          <div class="card card-accent"><div class="card-title">Valuation Meters</div><div id="val-meters"></div></div>
+          <div class="card"><div class="card-title">Fair Value Summary</div><div class="table-wrap"><table><thead><tr><th>Method</th><th>Fair Value</th><th>Upside</th><th>Signal</th></tr></thead><tbody id="val-table"></tbody></table></div></div>
+        </div>
+      </div>
     </div>
-  `;
-      }
 
-      // ─── VERDICT ─────────────────────────────────────────────────────────────────
-      function renderVerdict() {
-        document.getElementById('verdict-empty').style.display = 'none';
-        document.getElementById('verdict-content').style.display = 'block';
-
-        const totalScore =
-          scoreValuation() +
-          scoreProfitability() +
-          scoreDebt() +
-          scoreDividend();
-        const maxScore = 100;
-        const pct100 = (totalScore / maxScore) * 100;
-
-        let vClass, vTitle, vBody, vBadge;
-        if (pct100 >= 70) {
-          vClass = 'verdict-green';
-          vTitle = '✦ STRONG BUY CANDIDATE';
-          vBody = `${S.ticker} scores ${Math.round(pct100)}/100 across valuation, profitability, debt health, and dividend metrics. The stock shows multiple signs of being undervalued with solid fundamentals. Consider building a position with appropriate position sizing and a clear stop-loss.`;
-          vBadge = 'badge-green';
-          document.getElementById('topbar-verdict-badge').textContent = 'BUY';
-        } else if (pct100 >= 50) {
-          vClass = 'verdict-yellow';
-          vTitle = '◆ HOLD / MONITOR';
-          vBody = `${S.ticker} scores ${Math.round(pct100)}/100. The stock has some attractive qualities but also areas of concern. Not an urgent buy — monitor for improvement in weak areas before committing significant capital.`;
-          vBadge = 'badge-yellow';
-          document.getElementById('topbar-verdict-badge').textContent = 'HOLD';
-        } else {
-          vClass = 'verdict-red';
-          vTitle = '✖ AVOID / UNDERWEIGHT';
-          vBody = `${S.ticker} scores ${Math.round(pct100)}/100. Multiple red flags across the analysis. The stock may look cheap on surface metrics but the underlying fundamentals don't support a strong investment case at this time.`;
-          vBadge = 'badge-red';
-          document.getElementById('topbar-verdict-badge').textContent = 'AVOID';
-        }
-
-        document.getElementById('topbar-verdict-badge').style.display =
-          'inline-block';
-        document.getElementById('topbar-verdict-badge').className =
-          'badge ' + vBadge;
-
-        document.getElementById('verdict-panel').innerHTML = `
-    <div class="verdict-panel ${vClass}">
-      <div class="verdict-title">${vTitle}</div>
-      <div class="verdict-body">${vBody}</div>
-      <div style="margin-top:12px;font-family:var(--mono);font-size:13px;">Score: ${Math.round(pct100)} / 100</div>
+    <!-- FUNDAMENTALS -->
+    <div class="section" id="section-fundamentals">
+      <div class="section-title">Fundamental Analysis</div>
+      <div id="fund-empty" class="empty-state"><div class="icon">⊞</div><p>No data yet. Input your stock's financials first.</p></div>
+      <div id="fund-content" style="display:none;">
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('profitability',this)">Profitability</button>
+          <button class="tab" onclick="showTab('liquidity',this)">Liquidity & Debt</button>
+          <button class="tab" onclick="showTab('efficiency',this)">Efficiency</button>
+        </div>
+        <div class="tab-content active" id="tab-profitability"><div class="card"><div class="card-title">Profitability Metrics</div><div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Benchmark</th><th>Signal</th></tr></thead><tbody id="profit-table"></tbody></table></div></div></div>
+        <div class="tab-content" id="tab-liquidity"><div class="card"><div class="card-title">Liquidity & Debt Metrics</div><div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Benchmark</th><th>Signal</th></tr></thead><tbody id="debt-table"></tbody></table></div></div></div>
+        <div class="tab-content" id="tab-efficiency"><div class="card"><div class="card-title">Efficiency Metrics</div><div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Benchmark</th><th>Signal</th></tr></thead><tbody id="eff-table"></tbody></table></div></div></div>
+      </div>
     </div>
-  `;
 
-        const checks = [
-          {
-            pass: S.pe < 15,
-            warn: S.pe < 25,
-            title: 'Valuation: P/E Ratio',
-            detail: `P/E ${fmt(S.pe, 1)}× — ${S.pe < 15 ? 'Cheap' : 'S.pe<25?Fair:Expensive'}`,
-          },
-          {
-            pass: S.pb < 1.5,
-            warn: S.pb < 3,
-            title: 'Valuation: P/B Ratio',
-            detail: `P/B ${fmt(S.pb, 2)}× — ${S.pb < 1 ? 'Deep discount' : S.pb < 2 ? 'Fair' : 'Expensive'}`,
-          },
-          {
-            pass: S.roe > 15,
-            warn: S.roe > 8,
-            title: 'Profitability: ROE',
-            detail: `ROE ${fmt(S.roe, 1)}% — ${S.roe > 15 ? 'Strong' : S.roe > 8 ? 'Moderate' : 'Weak'}`,
-          },
-          {
-            pass: S.netMargin > 15,
-            warn: S.netMargin > 8,
-            title: 'Profitability: Net Margin',
-            detail: `${fmt(S.netMargin, 1)}% — ${S.netMargin > 15 ? 'Healthy' : 'Thin'}`,
-          },
-          {
-            pass: S.epsGrowth > 5,
-            warn: S.epsGrowth > 0,
-            title: 'Growth: EPS Trend',
-            detail: `${pct(S.epsGrowth)} YoY — ${S.epsGrowth > 10 ? 'Accelerating' : S.epsGrowth > 0 ? 'Positive' : 'Declining'}`,
-          },
-          {
-            pass: S.de < 0.5,
-            warn: S.de < 1.5,
-            title: 'Balance Sheet: Debt/Equity',
-            detail: `${fmt(S.de, 2)}× — ${S.de < 0.5 ? 'Conservative' : S.de < 1.5 ? 'Moderate' : 'Leveraged'}`,
-          },
-          {
-            pass: S.cash > S.totalDebt,
-            warn: S.cash > S.std,
-            title: 'Balance Sheet: Net Cash Position',
-            detail: `Cash Rp${fmt(S.cash, 0)}B vs Debt Rp${fmt(S.totalDebt, 0)}B`,
-          },
-          {
-            pass: S.dy > 4,
-            warn: S.dy > 1.5,
-            title: 'Dividend: Yield Attractiveness',
-            detail: `${fmt(S.dy, 2)}% yield — ${S.dy > 5 ? 'Excellent' : S.dy > 3 ? 'Good' : S.dy > 1 ? 'Low' : 'None'}`,
-          },
-          {
-            pass: S.payoutRatio < 60,
-            warn: S.payoutRatio < 80,
-            title: 'Dividend: Payout Sustainability',
-            detail: `${fmt(S.payoutRatio, 1)}% payout ratio — ${S.payoutRatio < 60 ? 'Sustainable' : S.payoutRatio < 80 ? 'Moderate' : 'Risky'}`,
-          },
-        ];
+    <!-- DIVIDEND -->
+    <div class="section" id="section-dividend">
+      <div class="section-title">Dividend Analysis</div>
+      <div id="div-empty" class="empty-state"><div class="icon">◎</div><p>No data yet. Input your stock's financials first.</p></div>
+      <div id="div-content" style="display:none;">
+        <div class="grid-4 spacer" id="div-stats"></div>
+        <div class="grid-2">
+          <div class="card card-accent-green">
+            <div class="card-title">Dividend Income Calculator</div>
+            <div class="input-group" style="margin-bottom:12px;">
+              <label>Number of Shares</label>
+              <input type="number" id="div-shares" placeholder="e.g. 10000" oninput="calcDividend()">
+            </div>
+            <div id="div-calc-result"><p style="font-size:12px;color:var(--text3);">Enter number of shares above.</p></div>
+          </div>
+          <div class="card"><div class="card-title">Dividend Sustainability</div><div id="div-checklist"></div></div>
+        </div>
+      </div>
+    </div>
 
-        document.getElementById('verdict-checklist').innerHTML = checks
-          .map((c) => {
-            const cls = c.pass ? 'pass' : c.warn ? 'warn' : 'fail';
-            const icon = c.pass ? '✓' : c.warn ? '◆' : '✖';
-            return `<div class="checklist-item">
-      <div class="check-dot ${cls}">${icon}</div>
-      <div class="check-text">
-        <div class="check-title">${c.title}</div>
-        <div class="check-detail">${c.detail}</div>
+    <!-- DCF -->
+    <div class="section" id="section-dcf">
+      <div class="section-title">DCF — Discounted Cash Flow</div>
+      <div id="dcf-empty" class="empty-state"><div class="icon">∿</div><p>No data yet. Input your stock's financials first.</p></div>
+      <div id="dcf-content" style="display:none;">
+        <div class="grid-2">
+          <div class="card card-accent">
+            <div class="card-title">DCF Assumptions</div>
+            <div class="input-grid">
+              <div class="input-group"><label>Growth yr 1–5 (%)</label><input type="number" id="dcf-g1" value="8" oninput="calcDCF()"></div>
+              <div class="input-group"><label>Growth yr 6–10 (%)</label><input type="number" id="dcf-g2" value="4" oninput="calcDCF()"></div>
+              <div class="input-group"><label>Terminal Growth (%)</label><input type="number" id="dcf-tg" value="3" oninput="calcDCF()"></div>
+              <div class="input-group"><label>Discount Rate / WACC (%)</label><input type="number" id="dcf-wacc" value="10" oninput="calcDCF()"></div>
+            </div>
+            <div class="dcf-result" id="dcf-result"></div>
+          </div>
+          <div class="card"><div class="card-title">10-Year EPS Projection</div><div id="dcf-table-wrap"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INPUT DATA -->
+    <div class="section" id="section-input">
+      <div class="section-title">Input Security Data</div>
+
+      <!-- MODE TOGGLE -->
+      <div style="display:flex;gap:0;margin-bottom:20px;max-width:720px;">
+        <button id="mode-simple-btn" onclick="switchMode('simple')" style="flex:1;padding:10px 0;border-radius:8px 0 0 8px;border:1px solid var(--blue);background:var(--blue);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;">⚡ Quick Check</button>
+        <button id="mode-pro-btn" onclick="switchMode('pro')" style="flex:1;padding:10px 0;border-radius:0 8px 8px 0;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;">🔬 Professional</button>
+      </div>
+
+      <!-- ── SIMPLE MODE ── -->
+      <div id="mode-simple" style="max-width:720px;">
+        <div class="card card-accent-yellow">
+          <div class="card-title">Quick Check — 3 Inputs Only</div>
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;">Just enter stock price, EPS, and book value. Get instant P/E, P/B, and a buy/hold/avoid signal in seconds — no deep data needed.</p>
+          <div class="input-grid" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="input-group"><label>Stock Price (Rp)</label><input type="number" id="q-price" placeholder="e.g. 2500" oninput="quickCalc()"></div>
+            <div class="input-group"><label>EPS (Rp)</label><input type="number" id="q-eps" placeholder="e.g. 200" oninput="quickCalc()"></div>
+            <div class="input-group"><label>Book Value / Share (Rp)</label><input type="number" id="q-bv" placeholder="e.g. 1500" oninput="quickCalc()"></div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="input-group"><label>Dividend / Share (Rp) — optional</label><input type="number" id="q-dps" placeholder="e.g. 120" oninput="quickCalc()"></div>
+          </div>
+          <div id="quick-result" style="margin-top:20px;display:none;">
+            <!-- Verdict -->
+            <div id="q-verdict" style="border-radius:10px;padding:14px 18px;margin-bottom:16px;"></div>
+            <!-- 3 Meters -->
+            <div class="grid-3" id="q-meters"></div>
+            <!-- Bars -->
+            <div style="margin-top:16px;" id="q-bars"></div>
+          </div>
+          <div id="quick-placeholder" style="margin-top:20px;text-align:center;padding:24px;color:var(--text3);font-size:13px;">← Fill in the 3 fields above to see instant results</div>
+        </div>
+        <div style="margin-top:12px;padding:12px 16px;background:var(--blue-dim);border:1px solid rgba(59,130,246,0.2);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.6;">
+          💡 Want a deeper analysis? Switch to <strong style="color:var(--blue)">Professional</strong> mode above to unlock full fundamentals, DCF, and Final Verdict.
+        </div>
+      </div>
+
+      <!-- ── PROFESSIONAL MODE ── -->
+      <div id="mode-pro" style="max-width:720px;display:none;">
+        <div class="card">
+          <div class="card-title">Professional Analysis — Full Financials</div>
+          <div style="background:var(--yellow-dim);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--yellow);line-height:1.5;">
+            ⚠️ Sample prices updated July 2026 — always verify live price on Stockbit / broker before investing.
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+            <span style="font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;">LOAD SAMPLE:</span>
+            <button class="btn btn-ghost btn-sm" onclick="loadSample('TLKM')">TLKM ~Rp2,500</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSample('UNTR')">UNTR ~Rp26,900</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSample('BBCA')">BBCA ~Rp6,050</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSample('BMRI')">BMRI ~Rp4,050</button>
+          </div>
+          <div class="input-grid">
+            <div class="input-section-label">Basic Info</div>
+            <div class="input-group"><label>Ticker Symbol</label><input type="text" id="inp-ticker" placeholder="e.g. TLKM" style="text-transform:uppercase"></div>
+            <div class="input-group"><label>Stock Price (Rp)</label><input type="number" id="inp-price" placeholder="e.g. 2500"></div>
+            <div class="input-section-label">Income Statement</div>
+            <div class="input-group"><label>EPS (Rp)</label><input type="number" id="inp-eps" placeholder="e.g. 200"></div>
+            <div class="input-group"><label>Revenue TTM (Rp B)</label><input type="number" id="inp-revenue" placeholder="e.g. 140000"></div>
+            <div class="input-group"><label>Net Profit (Rp B)</label><input type="number" id="inp-netprofit" placeholder="e.g. 24000"></div>
+            <div class="input-group"><label>EBITDA (Rp B)</label><input type="number" id="inp-ebitda" placeholder="e.g. 70000"></div>
+            <div class="input-group"><label>EPS Growth YoY (%)</label><input type="number" id="inp-eps-growth" placeholder="e.g. 12 or -5"></div>
+            <div class="input-group"><label>Revenue Growth YoY (%)</label><input type="number" id="inp-rev-growth" placeholder="e.g. 8"></div>
+            <div class="input-section-label">Balance Sheet</div>
+            <div class="input-group"><label>Book Value Per Share (Rp)</label><input type="number" id="inp-bv" placeholder="e.g. 1500"></div>
+            <div class="input-group"><label>Total Assets (Rp B)</label><input type="number" id="inp-assets" placeholder="e.g. 290000"></div>
+            <div class="input-group"><label>Total Liabilities (Rp B)</label><input type="number" id="inp-liabilities" placeholder="e.g. 134000"></div>
+            <div class="input-group"><label>Total Equity (Rp B)</label><input type="number" id="inp-equity" placeholder="e.g. 155000"></div>
+            <div class="input-group"><label>Short-term Debt (Rp B)</label><input type="number" id="inp-std" placeholder="e.g. 20000"></div>
+            <div class="input-group"><label>Long-term Debt (Rp B)</label><input type="number" id="inp-ltd" placeholder="e.g. 24000"></div>
+            <div class="input-group"><label>Cash (Rp B)</label><input type="number" id="inp-cash" placeholder="e.g. 37000"></div>
+            <div class="input-group"><label>Shares Outstanding (B)</label><input type="number" id="inp-shares" placeholder="e.g. 99"></div>
+            <div class="input-section-label">Dividend & Other</div>
+            <div class="input-group"><label>Dividend Per Share (Rp)</label><input type="number" id="inp-dps" placeholder="e.g. 180"></div>
+            <div class="input-group"><label>Industry Avg P/E</label><input type="number" id="inp-ind-pe" placeholder="e.g. 15"></div>
+            <div class="input-group"><label>ROE (%)</label><input type="number" id="inp-roe" placeholder="e.g. 18"></div>
+            <div class="input-group"><label>ROA (%)</label><input type="number" id="inp-roa" placeholder="e.g. 8"></div>
+          </div>
+          <div class="divider"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-primary" onclick="analyzeAndReturn()">Analyze Security →</button>
+            <button class="btn btn-ghost" id="btn-back" onclick="goBack()" style="display:none;">← Back to Analysis</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VERDICT -->
+    <div class="section" id="section-verdict">
+      <div class="section-title">Final Verdict</div>
+      <div id="verdict-empty" class="empty-state"><div class="icon">◉</div><p>No analysis yet. Input your stock's financials first.</p></div>
+      <div id="verdict-content" style="display:none;">
+        <div id="verdict-panel"></div>
+        <div class="card" style="margin-top:16px;"><div class="card-title">Analysis Checklist</div><div id="verdict-checklist"></div></div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</main>
+</div><!-- end app -->
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let S = {};
+let analyzed = false;
+const SECTIONS = ['overview','valuation','fundamentals','dividend','dcf','input','verdict'];
+const LABELS   = ['Overview','Valuation','Fundamentals','Dividend','DCF Model','Input Data','Final Verdict'];
+let current = 'overview';
+let lastNonInput = 'overview';
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function goSection(name) {
+  SECTIONS.forEach(s => {
+    document.getElementById('section-'+s).classList.remove('active');
+    document.getElementById('nav-'+s).classList.remove('active');
+  });
+  document.getElementById('section-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  current = name;
+  if (name !== 'input') lastNonInput = name;
+  syncNav();
+}
+
+function goBack() { goSection(lastNonInput); }
+
+function navStep(dir) {
+  const i = SECTIONS.indexOf(current);
+  const next = SECTIONS[i + dir];
+  if (next) goSection(next);
+}
+
+function syncNav() {
+  const i = SECTIONS.indexOf(current);
+  const isInput = current === 'input';
+
+  // Dots
+  document.getElementById('snav-dots').innerHTML = SECTIONS.map((s,j) =>
+    `<div class="snav-dot${s===current?' active':''}" title="${LABELS[j]}" onclick="goSection('${s}')"></div>`
+  ).join('');
+  document.getElementById('snav-label').textContent = LABELS[i] || '';
+
+  // Prev / Next with labels
+  const prev = document.getElementById('snav-prev');
+  const next = document.getElementById('snav-next');
+  prev.disabled = i === 0;
+  next.disabled = i === SECTIONS.length - 1;
+  prev.textContent = i > 0 ? '← ' + LABELS[i-1] : '←';
+  next.textContent = i < SECTIONS.length-1 ? LABELS[i+1] + ' →' : '→';
+
+  // Edit Data button in nav bar (only on analysis pages when data exists)
+  document.getElementById('snav-edit').style.display = (analyzed && !isInput) ? 'inline-flex' : 'none';
+
+  // Clear button in topbar (only when data exists)
+  document.getElementById('btn-clear').style.display = analyzed ? 'inline-flex' : 'none';
+
+  // Back button inside Input page (only when previously analyzed)
+  document.getElementById('btn-back').style.display = (analyzed && isInput) ? 'inline-flex' : 'none';
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => { goSection('overview'); });
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ─── SAMPLES ─────────────────────────────────────────────────────────────────
+const SAMPLES = {
+  TLKM:{ticker:'TLKM',price:2500,eps:179.83,revenue:147292,netprofit:17800,ebitda:73480,epsGrowth:-21.72,revGrowth:12.10,bv:1357.65,assets:289955,liabilities:134145,equity:155810,std:20919,ltd:24540,cash:37549,shares:99.06,dps:120,indPe:15,roe:11.4,roa:6.2},
+  UNTR:{ticker:'UNTR',price:26900,eps:764.65,revenue:125590,netprofit:12270,ebitda:18000,epsGrowth:15,revGrowth:10,bv:12238,assets:98000,liabilities:38000,equity:60000,std:5000,ltd:8000,cash:15000,shares:3.57,dps:1663,indPe:10,roe:12.31,roa:8.5},
+  BBCA:{ticker:'BBCA',price:6050,eps:320,revenue:85000,netprofit:48000,ebitda:52000,epsGrowth:10,revGrowth:8,bv:2100,assets:1350000,liabilities:1200000,equity:150000,std:80000,ltd:120000,cash:200000,shares:122.11,dps:336,indPe:18,roe:18.5,roa:3.8},
+  BMRI:{ticker:'BMRI',price:4050,eps:620,revenue:180000,netprofit:55000,ebitda:70000,epsGrowth:17,revGrowth:8.6,bv:3200,assets:2100000,liabilities:1900000,equity:200000,std:100000,ltd:200000,cash:250000,shares:92.27,dps:466,indPe:8,roe:13.6,roa:2.6},
+};
+
+function loadSample(ticker) {
+  const d = SAMPLES[ticker]; if(!d) return;
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.value=v; };
+  set('inp-ticker',d.ticker); set('inp-price',d.price); set('inp-eps',d.eps);
+  set('inp-revenue',d.revenue); set('inp-netprofit',d.netprofit); set('inp-ebitda',d.ebitda);
+  set('inp-eps-growth',d.epsGrowth); set('inp-rev-growth',d.revGrowth); set('inp-bv',d.bv);
+  set('inp-assets',d.assets); set('inp-liabilities',d.liabilities); set('inp-equity',d.equity);
+  set('inp-std',d.std); set('inp-ltd',d.ltd); set('inp-cash',d.cash); set('inp-shares',d.shares);
+  set('inp-dps',d.dps); set('inp-ind-pe',d.indPe); set('inp-roe',d.roe); set('inp-roa',d.roa);
+  toast(`${ticker} loaded — verify live price before investing!`, 'warn');
+}
+
+// ─── CLEAR ───────────────────────────────────────────────────────────────────
+function clearData() {
+  // Custom confirm UI (native confirm() blocked in sandboxed iframes)
+  const old = document.getElementById('_confirm'); if(old) old.remove();
+  const box = document.createElement('div');
+  box.id = '_confirm';
+  box.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)`;
+  box.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px 32px;max-width:360px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.6)">
+      <div style="font-size:28px;margin-bottom:12px">🗑️</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">Clear all data?</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5">This will reset the analyzer and clear all inputs. You'll need to re-enter the data.</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="document.getElementById('_confirm').remove()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)">Cancel</button>
+        <button onclick="doClear()" style="flex:1;padding:10px;border-radius:8px;border:none;background:var(--red);color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)">Yes, Clear</button>
       </div>
     </div>`;
-          })
-          .join('');
-      }
-    </script>
-  </body>
+  document.body.appendChild(box);
+}
+
+function doClear() {
+  const box = document.getElementById('_confirm'); if(box) box.remove();
+  S = {}; analyzed = false; lastNonInput = 'overview';
+  document.querySelectorAll('#section-input input').forEach(el => el.value = '');
+  document.getElementById('tickerDisplay').value = '';
+  document.getElementById('last-updated').textContent = '';
+  document.getElementById('topbar-badge').style.display = 'none';
+  ['overview','valuation','fundamentals','dividend','dcf','verdict'].forEach(s => {
+    const empty = document.getElementById(s+'-empty');
+    const content = document.getElementById(s+'-content');
+    if(empty) empty.style.display='block';
+    if(content) content.style.display='none';
+  });
+  document.getElementById('gauge-fill').style.strokeDashoffset = '251.2';
+  document.getElementById('gauge-needle').style.transform = 'rotate(-90deg)';
+  document.getElementById('health-score-num').textContent = '—';
+  document.getElementById('health-score-num').style.color = 'var(--text)';
+  document.getElementById('health-score-label').textContent = 'Enter data to calculate';
+  goSection('overview');
+  toast('All data cleared.', 'info');
+}
+
+// ─── MODE SWITCH ─────────────────────────────────────────────────────────────
+let inputMode = 'simple';
+function switchMode(mode) {
+  inputMode = mode;
+  const isSimple = mode === 'simple';
+  document.getElementById('mode-simple').style.display = isSimple ? 'block' : 'none';
+  document.getElementById('mode-pro').style.display   = isSimple ? 'none'  : 'block';
+  const sb = document.getElementById('mode-simple-btn');
+  const pb = document.getElementById('mode-pro-btn');
+  if (isSimple) {
+    sb.style.background='var(--blue)'; sb.style.color='white'; sb.style.borderColor='var(--blue)';
+    pb.style.background='var(--bg3)';  pb.style.color='var(--text2)'; pb.style.borderColor='var(--border2)';
+  } else {
+    pb.style.background='var(--blue)'; pb.style.color='white'; pb.style.borderColor='var(--blue)';
+    sb.style.background='var(--bg3)';  sb.style.color='var(--text2)'; sb.style.borderColor='var(--border2)';
+  }
+}
+
+// ─── QUICK CALC (Simple Mode) ─────────────────────────────────────────────────
+function quickCalc() {
+  const price = parseFloat(document.getElementById('q-price').value);
+  const eps   = parseFloat(document.getElementById('q-eps').value);
+  const bv    = parseFloat(document.getElementById('q-bv').value);
+  const dps   = parseFloat(document.getElementById('q-dps').value) || 0;
+
+  if (!price || !eps || !bv) {
+    document.getElementById('quick-result').style.display = 'none';
+    document.getElementById('quick-placeholder').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('quick-result').style.display = 'block';
+  document.getElementById('quick-placeholder').style.display = 'none';
+
+  const pe = price / eps;
+  const pb = price / bv;
+  const dy = dps ? (dps / price) * 100 : null;
+
+  // Zones
+  const peZone = pe < 15 ? 'cheap' : pe < 25 ? 'fair' : 'mahal';
+  const pbZone = pb < 1  ? 'cheap' : pb < 3  ? 'fair' : 'mahal';
+  const dyZone = dy ? (dy > 5 ? 'cheap' : dy > 2 ? 'fair' : 'mahal') : null;
+
+  // Score for verdict
+  const scores = [peZone, pbZone];
+  if (dyZone) scores.push(dyZone);
+  const cheapCount = scores.filter(s => s === 'cheap').length;
+  const mahalCount = scores.filter(s => s === 'mahal').length;
+
+  let vBg, vBorder, vColor, vEmoji, vTitle, vBody;
+  if (cheapCount >= 2) {
+    vBg='var(--green-dim)'; vBorder='rgba(16,185,129,0.3)'; vColor='var(--green)';
+    vEmoji='🟢'; vTitle='Looks CHEAP / Diskon';
+    vBody='Multiple indicators show this stock is trading below fair value. Worth investigating further — check the business quality before buying.';
+  } else if (mahalCount >= 2) {
+    vBg='var(--red-dim)'; vBorder='rgba(244,63,94,0.3)'; vColor='var(--red)';
+    vEmoji='🔴'; vTitle='Looks EXPENSIVE';
+    vBody='Price is high relative to earnings and assets. The market may be pricing in strong future growth — or it may simply be overvalued.';
+  } else {
+    vBg='var(--yellow-dim)'; vBorder='rgba(245,158,11,0.3)'; vColor='var(--yellow)';
+    vEmoji='🟡'; vTitle='Looks FAIRLY VALUED';
+    vBody='Not clearly cheap or expensive. Mixed signals — consider looking at growth prospects and dividend yield for more context.';
+  }
+
+  document.getElementById('q-verdict').style.cssText = `background:${vBg};border:1px solid ${vBorder};border-radius:10px;padding:14px 18px;`;
+  document.getElementById('q-verdict').innerHTML = `
+    <div style="font-size:18px;margin-bottom:6px;">${vEmoji}</div>
+    <div style="font-size:15px;font-weight:700;color:${vColor};margin-bottom:4px;">${vTitle}</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;">${vBody}</div>`;
+
+  // Stat cards
+  const zoneLabel = z => z==='cheap'?'Murah / Diskon':z==='fair'?'Wajar':'Mahal';
+  const zoneColor = z => z==='cheap'?'var(--green)':z==='fair'?'var(--yellow)':'var(--red)';
+  document.getElementById('q-meters').innerHTML = `
+    <div class="stat-card"><div class="stat-label">P/E Ratio</div><div class="stat-value" style="color:${zoneColor(peZone)}">${fmt(pe,1)}×</div><div class="stat-sub" style="color:${zoneColor(peZone)}">${zoneLabel(peZone)}</div></div>
+    <div class="stat-card"><div class="stat-label">P/B Ratio</div><div class="stat-value" style="color:${zoneColor(pbZone)}">${fmt(pb,2)}×</div><div class="stat-sub" style="color:${zoneColor(pbZone)}">${zoneLabel(pbZone)}</div></div>
+    <div class="stat-card"><div class="stat-label">Dividend Yield</div><div class="stat-value" style="color:${dy?zoneColor(dyZone):'var(--text3)'}">${dy?fmt(dy,2)+'%':'—'}</div><div class="stat-sub" style="color:${dy?zoneColor(dyZone):'var(--text3)'}">${dy?zoneLabel(dyZone):'Not entered'}</div></div>`;
+
+  // Progress bars
+  const barColor = z => z==='cheap'?'#10B981':z==='fair'?'#F59E0B':'#F43F5E';
+  const bars = [
+    { label:'P/E Ratio', val:pe, zone:peZone, pct:Math.min(100,(pe/40)*100), lo:'Cheap <15', hi:'Mahal >25' },
+    { label:'P/B Ratio', val:pb, zone:pbZone, pct:Math.min(100,(pb/6)*100),  lo:'Diskon <1', hi:'Mahal >3' },
+  ];
+  if (dy) bars.push({ label:'Dividend Yield', val:dy, zone:dyZone, pct:Math.min(100,(dy/10)*100), lo:'Rendah <2%', hi:'Tinggi >6%' });
+  document.getElementById('q-bars').innerHTML = bars.map(b => `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:12px;color:var(--text);font-weight:500;">${b.label}</span>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:${barColor(b.zone)}">${fmt(b.val,b.label==='Dividend Yield'?2:b.label==='P/B Ratio'?2:1)}${b.label==='Dividend Yield'?'%':'×'}</span>
+      </div>
+      <div style="height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${b.pct}%;background:${barColor(b.zone)};border-radius:4px;transition:width .8s cubic-bezier(.34,1.56,.64,1)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px;">
+        <span style="font-size:9px;color:var(--text3)">${b.lo}</span>
+        <span style="font-size:9px;color:var(--text3)">${b.hi}</span>
+      </div>
+    </div>`).join('');
+}
+
+function toast(msg, type='info') {
+  const old = document.getElementById('_toast'); if(old) old.remove();
+  const colors = {info:'var(--blue)',warn:'var(--yellow)',success:'var(--green)',error:'var(--red)'};
+  const t = document.createElement('div');
+  t.id = '_toast';
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--bg2);border:1px solid ${colors[type]};border-left:3px solid ${colors[type]};color:var(--text);padding:12px 18px;border-radius:10px;font-size:12px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideUp .3s ease;font-family:var(--sans);line-height:1.5`;
+  t.innerHTML = `<span style="color:${colors[type]};font-weight:600;margin-right:6px;">${type==='warn'?'⚠️':'ℹ️'}</span>${msg}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 4000);
+}
+
+// ─── FORMAT ──────────────────────────────────────────────────────────────────
+const fmt = (n,d=2) => (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtRp = n => { if(!n||isNaN(n)) return '—'; if(n>=1e12) return 'Rp '+fmt(n/1e12,2)+' T'; if(n>=1e9) return 'Rp '+fmt(n/1e9,2)+' B'; if(n>=1e6) return 'Rp '+fmt(n/1e6,1)+' M'; return 'Rp '+fmt(n,0); };
+const pct = n => (n>=0?'+':'')+fmt(n,2)+'%';
+const sig = (v,good,bad) => v>=good ? '<td class="green">✦ Good</td>' : v<=bad ? '<td class="red">✖ Weak</td>' : '<td class="yellow">◆ Fair</td>';
+const cls = (v,good,bad) => v>=good?'green':v<=bad?'red':'yellow';
+
+// ─── ANALYZE ─────────────────────────────────────────────────────────────────
+function analyzeStock() {
+  const g = id => parseFloat(document.getElementById(id).value)||0;
+  const gs = id => document.getElementById(id).value.trim().toUpperCase();
+  S = {
+    ticker:gs('inp-ticker')||'STOCK', price:g('inp-price'), eps:g('inp-eps'),
+    revenue:g('inp-revenue'), netprofit:g('inp-netprofit'), ebitda:g('inp-ebitda'),
+    epsGrowth:g('inp-eps-growth'), revGrowth:g('inp-rev-growth'), bv:g('inp-bv'),
+    assets:g('inp-assets'), liabilities:g('inp-liabilities'), equity:g('inp-equity'),
+    std:g('inp-std'), ltd:g('inp-ltd'), cash:g('inp-cash'), shares:g('inp-shares'),
+    dps:g('inp-dps'), indPe:g('inp-ind-pe')||15, roe:g('inp-roe'), roa:g('inp-roa'),
+  };
+  S.pe=S.price/S.eps; S.pb=S.price/S.bv;
+  S.dy=S.dps?(S.dps/S.price)*100:0;
+  S.marketCap=S.price*S.shares*1e9;
+  S.totalDebt=S.std+S.ltd; S.netDebt=S.totalDebt-S.cash;
+  S.de=S.equity?S.totalDebt/S.equity:0;
+  S.netMargin=S.revenue?(S.netprofit/S.revenue)*100:0;
+  S.payoutRatio=S.eps?(S.dps/S.eps)*100:0;
+  S.currentRatio=S.std?S.cash/S.std:0;
+  analyzed=true;
+  document.getElementById('tickerDisplay').value=S.ticker;
+  document.getElementById('last-updated').textContent=new Date().toLocaleTimeString('id-ID');
+  renderOverview(); renderValuation(); renderFundamentals();
+  renderDividend(); renderDCF(); renderVerdict();
+}
+
+function analyzeAndReturn() {
+  const wasAnalyzed = analyzed;
+  const ret = wasAnalyzed ? lastNonInput : 'overview';
+  analyzeStock();
+  goSection(ret);
+  toast(`${S.ticker} analyzed successfully!`, 'success');
+}
+
+// ─── SCORES ──────────────────────────────────────────────────────────────────
+function scoreVal() { let s=0; s+=S.pe<10?15:S.pe<15?12:S.pe<25?7:2; s+=S.pb<1?15:S.pb<2?10:S.pb<3?5:1; return Math.min(30,s); }
+function scoreProf() { let s=0; s+=S.roe>20?12:S.roe>15?9:S.roe>8?5:1; s+=S.netMargin>20?8:S.netMargin>10?5:S.netMargin>5?3:0; s+=S.epsGrowth>10?5:S.epsGrowth>0?3:0; return Math.min(25,s); }
+function scoreDebt() { let s=0; s+=S.de<0.3?12:S.de<0.7?9:S.de<1.5?5:1; s+=S.cash>S.totalDebt?8:S.cash>S.std?5:2; s+=S.currentRatio>2?5:S.currentRatio>1?3:0; return Math.min(25,s); }
+function scoreDiv() { if(!S.dps) return 8; let s=0; s+=S.dy>6?10:S.dy>3?7:S.dy>1?4:1; s+=S.payoutRatio<60?10:S.payoutRatio<80?6:S.payoutRatio<100?3:0; return Math.min(20,s); }
+
+// ─── RENDER OVERVIEW ─────────────────────────────────────────────────────────
+function renderOverview() {
+  document.getElementById('overview-empty').style.display='none';
+  document.getElementById('overview-content').style.display='block';
+  const pe_c=S.pe<15?'green':S.pe<25?'yellow':'red';
+  const pb_c=S.pb<1?'green':S.pb<3?'yellow':'red';
+  document.getElementById('overview-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Stock Price</div><div class="stat-value">Rp ${fmt(S.price,0)}</div><div class="stat-sub">${S.ticker} · IDX</div></div>
+    <div class="stat-card"><div class="stat-label">Market Cap</div><div class="stat-value" style="font-size:20px">${fmtRp(S.marketCap)}</div><div class="stat-sub">${fmt(S.shares,2)}B shares</div></div>
+    <div class="stat-card"><div class="stat-label">P/E Ratio</div><div class="stat-value ${pe_c}">${fmt(S.pe,1)}×</div><div class="stat-sub">EPS: Rp ${fmt(S.eps,2)}</div></div>
+    <div class="stat-card"><div class="stat-label">P/B Ratio</div><div class="stat-value ${pb_c}">${fmt(S.pb,2)}×</div><div class="stat-sub">BV/share: Rp ${fmt(S.bv,2)}</div></div>`;
+  const scores=[{name:'Valuation',val:scoreVal(),max:30},{name:'Profitability',val:scoreProf(),max:25},{name:'Debt Health',val:scoreDebt(),max:25},{name:'Dividend',val:scoreDiv(),max:20}];
+  const total=scores.reduce((a,b)=>a+b.val,0), maxT=scores.reduce((a,b)=>a+b.max,0), p100=(total/maxT)*100;
+  setTimeout(()=>{ document.getElementById('gauge-fill').style.strokeDashoffset=251.2*(1-p100/100); document.getElementById('gauge-needle').style.transform=`rotate(${-90+(p100/100)*180}deg)`; },100);
+  const sc=p100>=70?'var(--green)':p100>=45?'var(--yellow)':'var(--red)';
+  document.getElementById('health-score-num').textContent=Math.round(p100);
+  document.getElementById('health-score-num').style.color=sc;
+  document.getElementById('health-score-label').textContent=(p100>=70?'Strong':p100>=45?'Moderate':'Weak')+' Financial Health';
+  const bc=['var(--blue)','var(--green)','var(--yellow)','var(--red)'];
+  document.getElementById('health-bars').innerHTML=scores.map((s,i)=>`
+    <div class="hbar-row"><div class="hbar-label">${s.name}</div><div class="hbar-track"><div class="hbar-fill" id="hb${i}" style="width:0%;background:${bc[i]}"></div></div><div class="hbar-val">${Math.round((s.val/s.max)*100)}</div></div>`).join('');
+  setTimeout(()=>scores.forEach((s,i)=>{ const el=document.getElementById('hb'+i); if(el) el.style.width=((s.val/s.max)*100)+'%'; }),150);
+  const dy_c=S.dy>5?'green':S.dy>2?'yellow':'red';
+  const roe_c=S.roe>15?'green':S.roe>8?'yellow':'red';
+  const ratios=[
+    {n:'P/E Ratio',v:fmt(S.pe,1)+'×',z:S.pe<15?'Cheap':S.pe<25?'Fair':'Expensive',c:pe_c,p:Math.min(100,(S.pe/40)*100)},
+    {n:'P/B Ratio',v:fmt(S.pb,2)+'×',z:S.pb<1?'Discount':S.pb<3?'Fair':'Premium',c:pb_c,p:Math.min(100,(S.pb/6)*100)},
+    {n:'ROE',v:fmt(S.roe,1)+'%',z:S.roe>15?'Strong':S.roe>8?'Moderate':'Weak',c:roe_c,p:Math.min(100,(S.roe/30)*100)},
+    {n:'Dividend Yield',v:fmt(S.dy,2)+'%',z:S.dy>5?'High':S.dy>2?'Moderate':'Low',c:dy_c,p:Math.min(100,(S.dy/10)*100)},
+    {n:'Net Margin',v:fmt(S.netMargin,1)+'%',z:S.netMargin>20?'Strong':S.netMargin>10?'Good':'Thin',c:cls(S.netMargin,20,10),p:Math.min(100,(S.netMargin/30)*100)},
+    {n:'D/E Ratio',v:fmt(S.de,2)+'×',z:S.de<0.5?'Low':S.de<1.5?'Moderate':'High',c:S.de<0.5?'green':S.de<1.5?'yellow':'red',p:Math.min(100,(S.de/3)*100)},
+  ];
+  document.getElementById('key-ratios').innerHTML=ratios.map(r=>`
+    <div class="ratio-meter"><div class="ratio-header"><span class="ratio-name">${r.n}</span><span class="ratio-value ${r.c}">${r.v}</span></div>
+    <div class="ratio-track"><div class="ratio-fill" style="width:${r.p}%;background:var(--${r.c==='green'?'green':r.c==='red'?'red':'yellow'})"></div></div>
+    <div class="ratio-zones"><span class="ratio-zone-label">${r.z}</span></div></div>`).join('');
+}
+
+// ─── RENDER VALUATION ────────────────────────────────────────────────────────
+function renderValuation() {
+  document.getElementById('valuation-empty').style.display='none';
+  document.getElementById('valuation-content').style.display='block';
+  const fvPE=S.eps*S.indPe, fvPB=S.bv*1.5, fvPEG=S.epsGrowth>0?S.eps*S.epsGrowth:null;
+  const avgFV=fvPEG?(fvPE+fvPB+fvPEG)/3:(fvPE+fvPB)/2;
+  const up=((avgFV-S.price)/S.price)*100, uc=up>=20?'green':up>=0?'yellow':'red';
+  document.getElementById('val-targets').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Current Price</div><div class="stat-value">Rp ${fmt(S.price,0)}</div><div class="stat-sub">${S.ticker}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Fair Value</div><div class="stat-value ${uc}">Rp ${fmt(avgFV,0)}</div><div class="stat-sub">Blended estimate</div></div>
+    <div class="stat-card"><div class="stat-label">Upside / Downside</div><div class="stat-value ${uc}">${pct(up)}</div><div class="stat-sub">${up>=0?'Potential upside':'Potential downside'}</div></div>`;
+  document.getElementById('val-meters').innerHTML=[
+    {n:'P/E Ratio',v:fmt(S.pe,1)+'×',lo:'Cheap <10',hi:'Expensive >30',p:Math.min(100,(S.pe/40)*100),c:S.pe<15?'green':S.pe<25?'yellow':'red'},
+    {n:'P/B Ratio',v:fmt(S.pb,2)+'×',lo:'Discount <1',hi:'Premium >4',p:Math.min(100,(S.pb/6)*100),c:S.pb<1?'green':S.pb<3?'yellow':'red'},
+    {n:'Dividend Yield',v:fmt(S.dy,2)+'%',lo:'Low <2%',hi:'High >6%',p:Math.min(100,(S.dy/10)*100),c:S.dy>5?'green':S.dy>2?'yellow':'red'},
+  ].map(r=>`<div class="ratio-meter"><div class="ratio-header"><span class="ratio-name">${r.n}</span><span class="ratio-value ${r.c}">${r.v}</span></div>
+    <div class="ratio-track"><div class="ratio-fill" style="width:${r.p}%;background:var(--${r.c==='green'?'green':r.c==='red'?'red':'yellow'})"></div></div>
+    <div class="ratio-zones"><span class="ratio-zone-label">${r.lo}</span><span class="ratio-zone-label">${r.hi}</span></div></div>`).join('');
+  const rows=[{m:'P/E Method',f:fvPE,note:`EPS × Industry P/E (${S.indPe}×)`},{m:'P/B Method',f:fvPB,note:'BV × 1.5'},{m:'P/B Conservative',f:S.bv,note:'BV × 1.0'}];
+  if(fvPEG) rows.push({m:'PEG Method',f:fvPEG,note:`EPS × Growth (${S.epsGrowth}%)`});
+  document.getElementById('val-table').innerHTML=rows.map(r=>{ const u=((r.f-S.price)/S.price)*100,c=u>=10?'green':u>=0?'yellow':'red',s=u>=10?'✦ Cheap':u>=0?'◆ Fair':'✖ Expensive'; return `<tr><td class="label-col">${r.m}<br><span style="font-size:10px;color:var(--text3)">${r.note}</span></td><td>Rp ${fmt(r.f,0)}</td><td class="${c}">${pct(u)}</td><td class="${c}">${s}</td></tr>`; }).join('');
+}
+
+// ─── RENDER FUNDAMENTALS ─────────────────────────────────────────────────────
+function renderFundamentals() {
+  document.getElementById('fund-empty').style.display='none';
+  document.getElementById('fund-content').style.display='block';
+  document.getElementById('profit-table').innerHTML=[
+    ['ROE',fmt(S.roe,1)+'%','> 15%',S.roe,15,8],['ROA',fmt(S.roa,1)+'%','> 8%',S.roa,8,4],
+    ['Net Profit Margin',fmt(S.netMargin,1)+'%','> 20%',S.netMargin,20,10],
+    ['EPS Growth YoY',pct(S.epsGrowth),'> 10%',S.epsGrowth,10,0],
+    ['Revenue Growth YoY',pct(S.revGrowth),'> 8%',S.revGrowth,8,0],
+  ].map(([n,v,b,r,g,bad])=>`<tr><td class="label-col">${n}</td><td>${v}</td><td style="color:var(--text3)">${b}</td>${sig(r,g,bad)}</tr>`).join('');
+  document.getElementById('debt-table').innerHTML=[
+    ['Debt-to-Equity',fmt(S.de,2)+'×','< 0.5',-S.de,-0.5,-1.5],
+    ['Total Debt (B)',fmt(S.totalDebt,0),'< Equity',-S.totalDebt,-S.equity*.5,-S.equity],
+    ['Net Debt (B)',fmt(S.netDebt,0),'Negative = Cash+',-S.netDebt,0,S.cash],
+    ['Cash vs STD',fmt(S.cash,0)+' vs '+fmt(S.std,0),'Cash > STD',S.cash-S.std,0,-S.std],
+    ['Current Ratio',fmt(S.currentRatio,2)+'×','> 1.5',S.currentRatio,1.5,1],
+  ].map(([n,v,b,r,g,bad])=>`<tr><td class="label-col">${n}</td><td>${v}</td><td style="color:var(--text3)">${b}</td>${sig(r,g,bad)}</tr>`).join('');
+  const at=S.assets?(S.revenue/S.assets):0, em=S.equity?(S.assets/S.equity):0, em2=S.revenue?(S.ebitda/S.revenue*100):0;
+  document.getElementById('eff-table').innerHTML=[
+    ['Asset Turnover',fmt(at,2)+'×','> 0.5',at,.5,.2],
+    ['Equity Multiplier',fmt(em,2)+'×','< 3×',-em,-1,-3],
+    ['EBITDA Margin',fmt(em2,1)+'%','> 30%',em2,30,15],
+  ].map(([n,v,b,r,g,bad])=>`<tr><td class="label-col">${n}</td><td>${v}</td><td style="color:var(--text3)">${b}</td>${sig(r,g,bad)}</tr>`).join('');
+}
+
+// ─── RENDER DIVIDEND ─────────────────────────────────────────────────────────
+function renderDividend() {
+  document.getElementById('div-empty').style.display='none';
+  document.getElementById('div-content').style.display='block';
+  const dc=S.dy>5?'green':S.dy>2?'yellow':'red', pc=S.payoutRatio<60?'green':S.payoutRatio<80?'yellow':'red';
+  document.getElementById('div-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Dividend / Share</div><div class="stat-value">Rp ${fmt(S.dps,0)}</div></div>
+    <div class="stat-card"><div class="stat-label">Dividend Yield</div><div class="stat-value ${dc}">${fmt(S.dy,2)}%</div></div>
+    <div class="stat-card"><div class="stat-label">Payout Ratio</div><div class="stat-value ${pc}">${fmt(S.payoutRatio,1)}%</div></div>
+    <div class="stat-card"><div class="stat-label">Annual Income / Lot</div><div class="stat-value" style="font-size:18px">Rp ${fmt(S.dps*100,0)}</div><div class="stat-sub">per 100 shares</div></div>`;
+  calcDividend();
+  document.getElementById('div-checklist').innerHTML=[
+    {ok:S.payoutRatio<80,t:'Payout ratio below 80%',d:`Current: ${fmt(S.payoutRatio,1)}% — ${S.payoutRatio<60?'Healthy':'Getting high'}`},
+    {ok:S.epsGrowth>0,t:'EPS is growing',d:`EPS growth: ${pct(S.epsGrowth)}`},
+    {ok:S.de<1.5,t:'Manageable debt',d:`D/E: ${fmt(S.de,2)}×`},
+    {ok:S.cash>S.std,t:'Cash covers short-term debt',d:`Cash Rp${fmt(S.cash,0)}B vs STD Rp${fmt(S.std,0)}B`},
+    {ok:S.dy>2,t:'Yield is meaningful (>2%)',d:`Current yield: ${fmt(S.dy,2)}%`},
+  ].map(c=>`<div class="checklist-item"><div class="check-dot ${c.ok?'pass':'fail'}">${c.ok?'✓':'✖'}</div><div class="check-text"><div class="check-title">${c.t}</div><div class="check-detail">${c.d}</div></div></div>`).join('');
+}
+
+function calcDividend() {
+  if(!analyzed) return;
+  const shares=parseFloat(document.getElementById('div-shares').value)||0;
+  if(!shares){ document.getElementById('div-calc-result').innerHTML='<p style="font-size:12px;color:var(--text3)">Enter number of shares above.</p>'; return; }
+  const income=shares*S.dps, capital=shares*S.price, lots=Math.floor(shares/100);
+  document.getElementById('div-calc-result').innerHTML=`
+    <div style="background:var(--bg3);border-radius:10px;padding:16px;border:1px solid var(--border2)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="stat-label" style="margin-bottom:4px">Annual Dividend</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:var(--green)">Rp ${fmt(income,0)}</div></div>
+        <div><div class="stat-label" style="margin-bottom:4px">Capital Required</div><div style="font-family:var(--mono);font-size:22px;font-weight:600">Rp ${fmt(capital,0)}</div></div>
+        <div><div class="stat-label" style="margin-bottom:4px">Monthly Equivalent</div><div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--blue)">Rp ${fmt(income/12,0)}</div></div>
+        <div><div class="stat-label" style="margin-bottom:4px">Lots</div><div style="font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text2)">${fmt(lots,0)} lot</div></div>
+      </div></div>`;
+}
+
+// ─── RENDER DCF ──────────────────────────────────────────────────────────────
+function renderDCF() { document.getElementById('dcf-empty').style.display='none'; document.getElementById('dcf-content').style.display='block'; calcDCF(); }
+function calcDCF() {
+  if(!analyzed) return;
+  const g1=(parseFloat(document.getElementById('dcf-g1').value)||8)/100;
+  const g2=(parseFloat(document.getElementById('dcf-g2').value)||4)/100;
+  const tg=(parseFloat(document.getElementById('dcf-tg').value)||3)/100;
+  const wacc=(parseFloat(document.getElementById('dcf-wacc').value)||10)/100;
+  let eps=S.eps, totalPV=0, rows='';
+  for(let y=1;y<=10;y++){ const g=y<=5?g1:g2; eps*=(1+g); const pv=eps/Math.pow(1+wacc,y); totalPV+=pv; const c=eps>S.eps?'green':'red'; rows+=`<tr><td style="color:var(--text2)">Year ${y}</td><td class="${c}">Rp ${fmt(eps,2)}</td><td>Rp ${fmt(pv,2)}</td><td style="color:var(--text3)">${y<=5?'+'+fmt(g1*100,0):'+'+fmt(g2*100,0)}%</td></tr>`; }
+  const tv=eps*(1+tg)/(wacc-tg), tvPV=tv/Math.pow(1+wacc,10); totalPV+=tvPV;
+  const up=((totalPV-S.price)/S.price)*100, c=up>=20?'var(--green)':up>=0?'var(--yellow)':'var(--red)';
+  document.getElementById('dcf-result').innerHTML=`<div class="dcf-label">DCF Intrinsic Value</div><div class="dcf-value" style="color:${c}">Rp ${fmt(totalPV,0)}</div><div class="dcf-updown" style="color:${c}">${up>=0?'Undervalued by':'Overvalued by'} ${fmt(Math.abs(up),1)}%</div><div style="font-size:11px;color:var(--text3);margin-top:8px">Terminal value PV: Rp ${fmt(tvPV,0)}</div>`;
+  document.getElementById('dcf-table-wrap').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Year</th><th>Projected EPS</th><th>Present Value</th><th>Growth</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ─── RENDER VERDICT ──────────────────────────────────────────────────────────
+function renderVerdict() {
+  document.getElementById('verdict-empty').style.display='none';
+  document.getElementById('verdict-content').style.display='block';
+  const total=scoreVal()+scoreProf()+scoreDebt()+scoreDiv(), p=total;
+  let vc,vt,vb,badge;
+  if(p>=70){vc='verdict-green';vt='✦ STRONG BUY CANDIDATE';vb=`${S.ticker} scores ${p}/100 — strong fundamentals, multiple signs of undervaluation. Build position with proper sizing and stop-loss.`;badge='badge-green';document.getElementById('topbar-badge').textContent='BUY';}
+  else if(p>=50){vc='verdict-yellow';vt='◆ HOLD / MONITOR';vb=`${S.ticker} scores ${p}/100 — some attractive qualities but areas of concern. Monitor before committing significant capital.`;badge='badge-yellow';document.getElementById('topbar-badge').textContent='HOLD';}
+  else{vc='verdict-red';vt='✖ AVOID / UNDERWEIGHT';vb=`${S.ticker} scores ${p}/100 — multiple red flags. May look cheap on surface but fundamentals don't support a strong case.`;badge='badge-red';document.getElementById('topbar-badge').textContent='AVOID';}
+  document.getElementById('topbar-badge').style.display='inline-block';
+  document.getElementById('topbar-badge').className='badge '+badge;
+  document.getElementById('verdict-panel').innerHTML=`<div class="verdict-panel ${vc}"><div class="verdict-title">${vt}</div><div class="verdict-body">${vb}</div><div style="margin-top:12px;font-family:var(--mono);font-size:13px">Score: ${p} / 100</div></div>`;
+  document.getElementById('verdict-checklist').innerHTML=[
+    {pass:S.pe<15,warn:S.pe<25,t:'Valuation: P/E Ratio',d:`P/E ${fmt(S.pe,1)}× — ${S.pe<15?'Cheap':S.pe<25?'Fair':'Expensive'}`},
+    {pass:S.pb<1.5,warn:S.pb<3,t:'Valuation: P/B Ratio',d:`P/B ${fmt(S.pb,2)}× — ${S.pb<1?'Deep discount':S.pb<2?'Fair':'Expensive'}`},
+    {pass:S.roe>15,warn:S.roe>8,t:'Profitability: ROE',d:`${fmt(S.roe,1)}% — ${S.roe>15?'Strong':S.roe>8?'Moderate':'Weak'}`},
+    {pass:S.netMargin>15,warn:S.netMargin>8,t:'Profitability: Net Margin',d:`${fmt(S.netMargin,1)}% — ${S.netMargin>15?'Healthy':'Thin'}`},
+    {pass:S.epsGrowth>5,warn:S.epsGrowth>0,t:'Growth: EPS Trend',d:`${pct(S.epsGrowth)} YoY — ${S.epsGrowth>10?'Accelerating':S.epsGrowth>0?'Positive':'Declining'}`},
+    {pass:S.de<0.5,warn:S.de<1.5,t:'Balance Sheet: D/E',d:`${fmt(S.de,2)}× — ${S.de<0.5?'Conservative':S.de<1.5?'Moderate':'Leveraged'}`},
+    {pass:S.cash>S.totalDebt,warn:S.cash>S.std,t:'Balance Sheet: Net Cash',d:`Cash Rp${fmt(S.cash,0)}B vs Debt Rp${fmt(S.totalDebt,0)}B`},
+    {pass:S.dy>4,warn:S.dy>1.5,t:'Dividend: Yield',d:`${fmt(S.dy,2)}% — ${S.dy>5?'Excellent':S.dy>3?'Good':S.dy>1?'Low':'None'}`},
+    {pass:S.payoutRatio<60,warn:S.payoutRatio<80,t:'Dividend: Payout Sustainability',d:`${fmt(S.payoutRatio,1)}% — ${S.payoutRatio<60?'Sustainable':S.payoutRatio<80?'Moderate':'Risky'}`},
+  ].map(c=>{ const cl=c.pass?'pass':c.warn?'warn':'fail', ic=c.pass?'✓':c.warn?'◆':'✖'; return `<div class="checklist-item"><div class="check-dot ${cl}">${ic}</div><div class="check-text"><div class="check-title">${c.t}</div><div class="check-detail">${c.d}</div></div></div>`; }).join('');
+}
+</script>
+</body>
 </html>
