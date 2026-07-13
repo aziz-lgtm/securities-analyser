@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark background -->
+  <rect width="32" height="32" rx="7" fill="#0E1628"/>
+  
+  <!-- Outer ring arc (gauge style) -->
+  <path d="M6 22 A11 11 0 1 1 26 22" fill="none" stroke="#1E2D4A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M6 22 A11 11 0 1 1 26 22" fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="50 100" stroke-dashoffset="-10"/>
+  
+  <!-- Needle -->
+  <line x1="16" y1="22" x2="10" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="16" cy="22" r="2" fill="#3B82F6"/>
+
+  <!-- S letter mark -->
+  <text x="16" y="29" font-family="IBM Plex Mono, monospace" font-size="5" font-weight="600" fill="#3B82F6" text-anchor="middle" letter-spacing="1">SV</text>
+
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F43F5E"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+</svg>
